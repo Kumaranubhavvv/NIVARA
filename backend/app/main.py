@@ -9,6 +9,8 @@ from app.api.router import api_router
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Group, GroupMember, Post, Comment, Resource, Event, SavedPost
+from app.domains.communication.models import AACCategory, AACCard, SavedPhrase, EmotionRecord, CommunicationLog
+from app.domains.learning.models import Routine, RoutineStep, Task, Reminder, LearningTopic, TutorChatSession
 
 app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
 
@@ -397,6 +399,157 @@ def startup_event():
             )
             db.add(loc)
             db.commit()
+
+            # Seed AAC Categories and Cards if not present
+            if db.query(AACCategory).count() == 0:
+                cat_quick = AACCategory(id="cat-quick", name="Quick Needs", icon="⭐", color="#2563EB", order=1)
+                cat_food = AACCategory(id="cat-food", name="Food", icon="🍴", color="#F59E0B", order=2)
+                cat_drink = AACCategory(id="cat-drink", name="Drink", icon="🥤", color="#3B82F6", order=3)
+                cat_feelings = AACCategory(id="cat-feelings", name="Feelings", icon="❤️", color="#EF4444", order=4)
+                cat_actions = AACCategory(id="cat-actions", name="Actions", icon="🏃", color="#10B981", order=5)
+                cat_play = AACCategory(id="cat-play", name="Play", icon="🧸", color="#8B5CF6", order=6)
+                db.add_all([cat_quick, cat_food, cat_drink, cat_feelings, cat_actions, cat_play])
+                db.commit()
+
+                cards = [
+                    # Quick Needs
+                    AACCard(id="card-water", category_id="cat-quick", label="Water", spoken_text="I want water, please.", icon="💧", part_of_speech="noun", is_quick_need=True, usage_count=45),
+                    AACCard(id="card-food", category_id="cat-quick", label="Food", spoken_text="I want food, please.", icon="🍴", part_of_speech="noun", is_quick_need=True, usage_count=42),
+                    AACCard(id="card-toilet", category_id="cat-quick", label="Toilet", spoken_text="I need to use the bathroom, please.", icon="🚻", part_of_speech="noun", is_quick_need=True, usage_count=38),
+                    AACCard(id="card-help", category_id="cat-quick", label="Help", spoken_text="Please help me.", icon="🛟", part_of_speech="verb", is_quick_need=True, usage_count=36),
+                    AACCard(id="card-sleep", category_id="cat-quick", label="Sleep", spoken_text="I am tired and want to rest.", icon="🛏️", part_of_speech="noun", is_quick_need=True, usage_count=29),
+                    AACCard(id="card-play", category_id="cat-quick", label="Play", spoken_text="I want to play.", icon="🚗", part_of_speech="verb", is_quick_need=True, usage_count=31),
+                    AACCard(id="card-quiet", category_id="cat-quick", label="Quiet", spoken_text="It is too loud. I need quiet.", icon="🤫", part_of_speech="adjective", is_quick_need=True, usage_count=20),
+                    AACCard(id="card-hug", category_id="cat-quick", label="Hug", spoken_text="Can I have a hug, please?", icon="🫂", part_of_speech="noun", is_quick_need=True, usage_count=24),
+
+                    # Common Pronouns & Action Connectors
+                    AACCard(id="card-i", category_id="cat-actions", label="I", spoken_text="I", icon="👤", part_of_speech="pronoun", usage_count=80),
+                    AACCard(id="card-want", category_id="cat-actions", label="WANT", spoken_text="want", icon="👋", part_of_speech="verb", usage_count=75),
+                    AACCard(id="card-need", category_id="cat-actions", label="NEED", spoken_text="need", icon="✋", part_of_speech="verb", usage_count=60),
+                    AACCard(id="card-feel", category_id="cat-actions", label="FEEL", spoken_text="feel", icon="❤️", part_of_speech="verb", usage_count=50),
+                    AACCard(id="card-stop", category_id="cat-actions", label="STOP", spoken_text="please stop", icon="🛑", part_of_speech="verb", is_quick_need=True, usage_count=35),
+                    AACCard(id="card-yes", category_id="cat-actions", label="YES", spoken_text="yes", icon="✅", part_of_speech="adverb", is_quick_need=True, usage_count=40),
+                    AACCard(id="card-no", category_id="cat-actions", label="NO", spoken_text="no", icon="❌", part_of_speech="adverb", is_quick_need=True, usage_count=40),
+
+                    # Food & Drink
+                    AACCard(id="card-apple", category_id="cat-food", label="Apple", spoken_text="apple", icon="🍎", part_of_speech="noun", usage_count=12),
+                    AACCard(id="card-bread", category_id="cat-food", label="Bread", spoken_text="bread", icon="🍞", part_of_speech="noun", usage_count=10),
+                    AACCard(id="card-juice", category_id="cat-drink", label="Juice", spoken_text="juice", icon="🧃", part_of_speech="noun", usage_count=18),
+                    AACCard(id="card-milk", category_id="cat-drink", label="Milk", spoken_text="milk", icon="🥛", part_of_speech="noun", usage_count=15),
+
+                    # Feelings
+                    AACCard(id="card-happy", category_id="cat-feelings", label="Happy", spoken_text="happy", icon="😊", part_of_speech="adjective", usage_count=22),
+                    AACCard(id="card-sad", category_id="cat-feelings", label="Sad", spoken_text="sad", icon="😢", part_of_speech="adjective", usage_count=14),
+                    AACCard(id="card-angry", category_id="cat-feelings", label="Angry", spoken_text="angry", icon="😡", part_of_speech="adjective", usage_count=9),
+                    AACCard(id="card-anxious", category_id="cat-feelings", label="Anxious", spoken_text="worried", icon="😰", part_of_speech="adjective", usage_count=11),
+                ]
+                db.add_all(cards)
+                db.commit()
+
+            # Seed Default Routines & Steps
+            if db.query(Routine).count() == 0:
+                morning_routine = Routine(
+                    id="routine-morning-1",
+                    title="Morning Sunshine Routine",
+                    time_of_day="morning",
+                    icon="🌅",
+                    color="#3B82F6",
+                    streak_days=4,
+                )
+                db.add(morning_routine)
+                db.commit()
+
+                steps = [
+                    RoutineStep(routine_id=morning_routine.id, step_number=1, title="Wake up & stretch", instruction="Gentle stretches and open curtains.", icon="🧘", duration_sec=60, is_completed=True),
+                    RoutineStep(routine_id=morning_routine.id, step_number=2, title="Brush teeth", instruction="Scrub circles on top and bottom.", icon="🪥", duration_sec=120, is_completed=True),
+                    RoutineStep(routine_id=morning_routine.id, step_number=3, title="Wash face & hands", instruction="Warm water and dry with soft towel.", icon="🧼", duration_sec=60, is_completed=False),
+                    RoutineStep(routine_id=morning_routine.id, step_number=4, title="Put on clothes", instruction="Shirt, pants, and cozy socks.", icon="👕", duration_sec=180, is_completed=False),
+                    RoutineStep(routine_id=morning_routine.id, step_number=5, title="Healthy breakfast", instruction="Eat breakfast and drink a glass of water.", icon="🥣", duration_sec=600, is_completed=False),
+                ]
+                db.add_all(steps)
+
+                bedtime_routine = Routine(
+                    id="routine-bedtime-1",
+                    title="Calm Bedtime Wind-Down",
+                    time_of_day="bedtime",
+                    icon="🌙",
+                    color="#8B5CF6",
+                    streak_days=6,
+                )
+                db.add(bedtime_routine)
+                db.commit()
+
+                bed_steps = [
+                    RoutineStep(routine_id=bedtime_routine.id, step_number=1, title="Put on pajamas", instruction="Cozy nightwear.", icon="🧸", duration_sec=120, is_completed=False),
+                    RoutineStep(routine_id=bedtime_routine.id, step_number=2, title="Night tooth brushing", instruction="2 minutes clean teeth.", icon="🪥", duration_sec=120, is_completed=False),
+                    RoutineStep(routine_id=bedtime_routine.id, step_number=3, title="Bedtime social story", instruction="Read 1 story together in dim light.", icon="📖", duration_sec=300, is_completed=False),
+                    RoutineStep(routine_id=bedtime_routine.id, step_number=4, title="White noise & lights off", instruction="Cozy blanket and sweet dreams.", icon="🌌", duration_sec=60, is_completed=False),
+                ]
+                db.add_all(bed_steps)
+                db.commit()
+
+            # Seed Reminders
+            if db.query(Reminder).count() == 0:
+                rems = [
+                    Reminder(id="rem-water-1", title="Drink Water (Hydration Break)", time_str="10:00 AM", frequency="Daily", category="Hydration", icon="💧", is_active=True),
+                    Reminder(id="rem-sensory-1", title="5-Minute Sensory Calming Break", time_str="02:30 PM", frequency="Weekdays", category="Sensory Break", icon="🎧", is_active=True),
+                    Reminder(id="rem-homework-1", title="Visual Learning & Puzzle Time", time_str="04:30 PM", frequency="Weekdays", category="Routine", icon="🧩", is_active=True),
+                ]
+                db.add_all(rems)
+                db.commit()
+
+            # Seed Learning Topics
+            if db.query(LearningTopic).count() == 0:
+                topics = [
+                    LearningTopic(
+                        id="topic-social-1",
+                        title="Taking Turns on the Playground",
+                        category="Social Stories",
+                        description="Learn how to share swings and ask friends to play together politely.",
+                        icon="🛝",
+                        color="#10B981",
+                        progress_pct=60,
+                        modules=[
+                            {"title": "When the swing is busy", "text": "We wait on the bench and count to 20.", "icon": "⏳"},
+                            {"title": "Magic words", "text": "'May I have a turn next, please?'", "icon": "✨"},
+                        ]
+                    ),
+                    LearningTopic(
+                        id="topic-emotion-1",
+                        title="When Noises Get Too Loud",
+                        category="Emotion Regulation",
+                        description="Steps to handle loud sirens, blenders, or crowded rooms peacefully.",
+                        icon="🎧",
+                        color="#3B82F6",
+                        progress_pct=85,
+                        modules=[
+                            {"title": "Recognizing the feeling", "text": "Ears hurt or body feels tense.", "icon": "👂"},
+                            {"title": "Put on headphones", "text": "Reach into backpack for your quiet headphones.", "icon": "🎧"},
+                            {"title": "Ask for quiet space", "text": "Show the 'Too Loud' card to adult.", "icon": "💬"},
+                        ]
+                    ),
+                    LearningTopic(
+                        id="topic-skills-1",
+                        title="Tying Shoes Step-by-Step",
+                        category="Daily Life Skills",
+                        description="Bunny ears method made simple with visual colors.",
+                        icon="👟",
+                        color="#F59E0B",
+                        progress_pct=40,
+                    ),
+                    LearningTopic(
+                        id="topic-science-1",
+                        title="Secrets of the Solar System",
+                        category="Science & Nature",
+                        description="Meet the 8 planets and their moons with fun analogies.",
+                        icon="🪐",
+                        color="#8B5CF6",
+                        progress_pct=100,
+                        is_completed=True,
+                    ),
+                ]
+                db.add_all(topics)
+                db.commit()
 
     finally:
         db.close()
