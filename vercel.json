@@ -1,6 +1,5 @@
 {
-  "installCommand": "cd frontend && npm install --legacy-peer-deps",
-  "buildCommand": "cd frontend && npx expo export -p web",
+  "buildCommand": "echo 'Pre-built dist ready'",
   "outputDirectory": "frontend/dist",
   "cleanUrls": true,
   "routes": [

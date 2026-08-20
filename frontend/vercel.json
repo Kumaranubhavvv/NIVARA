@@ -1,6 +1,5 @@
 {
-  "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "npx expo export -p web",
+  "buildCommand": "echo 'Pre-built dist ready'",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "routes": [

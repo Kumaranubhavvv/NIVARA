@@ -2,7 +2,6 @@
 node_modules/
 
 # Build & Expo outputs
-dist/
 build/
 web-build/
 .expo/
