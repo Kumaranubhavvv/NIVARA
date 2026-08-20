@@ -1,12 +1,12 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#0F172A" />
+      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
       <AppNavigator />
     </SafeAreaProvider>
   );
