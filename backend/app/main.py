@@ -4,13 +4,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect
 from app.core.database import Base, engine, SessionLocal
+from app.config.database import Base as SafetyBase
 from app.core.security import get_password_hash
+from app.core.exception_handlers import register_exception_handlers
+from app.core.middleware import RequestContextMiddleware
 from app.api.router import api_router
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Group, GroupMember, Post, Comment, Resource, Event, SavedPost
+# Import the safety models before creating metadata so their tables are registered.
+from app.models.child import Child
+from app.models.device import Device
+from app.models.safe_zone import SafeZone
+from app.models.emergency_contact import EmergencyContact
+from app.models.location import Location
 
 app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
+register_exception_handlers(app)
+app.add_middleware(RequestContextMiddleware)
 
 # Enable CORS for frontend web and mobile clients
 app.add_middleware(
@@ -57,6 +68,21 @@ def startup_event():
         pass
 
     Base.metadata.create_all(bind=engine)
+    # Lightweight additive migration for the core notification fields. Existing
+    # installations keep their data and only receive missing nullable columns.
+    try:
+        inspector = inspect(engine)
+        notification_columns = {column["name"] for column in inspector.get_columns("notifications")} if "notifications" in inspector.get_table_names() else set()
+        with engine.begin() as connection:
+            if notification_columns and "data" not in notification_columns:
+                connection.exec_driver_sql("ALTER TABLE notifications ADD COLUMN data JSON")
+            if notification_columns and "read_at" not in notification_columns:
+                connection.exec_driver_sql("ALTER TABLE notifications ADD COLUMN read_at DATETIME")
+    except Exception:
+        # A failed non-critical additive migration must not prevent startup.
+        pass
+    # The legacy safety module uses its own metadata registry.
+    SafetyBase.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         # Seed test users if not present
@@ -322,12 +348,6 @@ def startup_event():
             db.commit()
 
         # Seed Safety demo data: Child, Device, SafeZone, Emergency Contact
-        from app.models.child import Child
-        from app.models.device import Device
-        from app.models.safe_zone import SafeZone
-        from app.models.emergency_contact import EmergencyContact
-        from app.models.location import Location
-
         leo = db.query(Child).filter(Child.id == "child-leo-1").first()
         if not leo:
             leo = Child(
@@ -368,6 +388,7 @@ def startup_event():
                 is_active=True,
                 alert_on_exit=True,
             )
+
             db.add(home_zone)
 
             contact = EmergencyContact(
@@ -398,9 +419,17 @@ def startup_event():
             db.add(loc)
             db.commit()
 
+
     finally:
         db.close()
+
+from app.core.database import connect_mongodb, close_mongodb
 
 @app.on_event("startup")
 def on_startup():
     startup_event()
+    connect_mongodb()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    close_mongodb()

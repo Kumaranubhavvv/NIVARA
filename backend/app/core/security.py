@@ -1,3 +1,4 @@
+import uuid
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional
@@ -22,13 +23,30 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode = {"sub": user_id, "exp": expire}
+    if not settings.SECRET_KEY:
+        raise RuntimeError("SECRET_KEY must be configured before issuing tokens.")
+    to_encode = {"sub": user_id, "type": "access", "jti": uuid.uuid4().hex, "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-def decode_access_token(token: str) -> Optional[str]:
+def create_refresh_token(user_id: str) -> str:
+    if not settings.SECRET_KEY:
+        raise RuntimeError("SECRET_KEY must be configured before issuing tokens.")
+    expire = datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    return jwt.encode({"sub": user_id, "type": "refresh", "jti": uuid.uuid4().hex, "exp": expire}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+def decode_token(token: str, expected_type: Optional[str] = None) -> Optional[dict]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload.get("sub")
+        if expected_type and payload.get("type", "access") != expected_type:
+            return None
+        return payload
+    except jwt.PyJWTError:
+        return None
+
+def decode_access_token(token: str) -> Optional[str]:
+    try:
+        payload = decode_token(token, "access")
+        return payload.get("sub") if payload else None
     except Exception:
         return None

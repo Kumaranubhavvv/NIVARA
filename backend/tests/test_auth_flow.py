@@ -16,6 +16,10 @@ startup_event()
 client = TestClient(app)
 
 def test_registration_validation_and_creation():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    startup_event()
+
     # 1. Missing fields
     res_empty = client.post("/api/v1/auth/register", json={"email": "", "password": "", "full_name": ""})
     assert res_empty.status_code == 400

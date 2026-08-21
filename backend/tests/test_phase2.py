@@ -45,6 +45,10 @@ def test_2_unverified_chat_access_denied():
     assert "UNVERIFIED_CAREGIVER" in res.json()["detail"]
 
 def test_3_create_conversation_and_prevent_duplicates():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    startup_event()
+
     # Test 3 & 8: Verified caregiver can create conversation and duplicate is prevented
     (sarah_token, sarah_id), (david_token, david_id), _ = get_tokens()
 

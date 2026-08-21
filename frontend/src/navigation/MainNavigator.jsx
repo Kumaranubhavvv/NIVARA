@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/home/HomeScreen';
+import NotificationsScreen from '../screens/home/NotificationsScreen';
 import CommunityNavigator from './CommunityNavigator';
 import SafetyNavigator from './SafetyNavigator';
 
@@ -19,6 +20,10 @@ import DeviceStatusScreen from '../screens/caregiver/DeviceStatusScreen';
 import SafetyOverviewScreen from '../screens/caregiver/SafetyOverviewScreen';
 import SupportCenterScreen from '../screens/caregiver/SupportCenterScreen';
 
+import CommunicationNavigator from './CommunicationNavigator';
+import LearningNavigator from './LearningNavigator';
+import SensoryNavigator from './SensoryNavigator';
+
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator() {
@@ -26,10 +31,14 @@ export default function MainNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Home">
       {/* 1. Flagship Unified Home Dashboard (Safety + Community Combined) */}
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
       {/* 2. Main Portals */}
       <Stack.Screen name="CommunityTab" component={CommunityNavigator} />
       <Stack.Screen name="SafetyTab" component={SafetyNavigator} />
+      <Stack.Screen name="CommunicationTab" component={CommunicationNavigator} />
+      <Stack.Screen name="LearningTab" component={LearningNavigator} />
+      <Stack.Screen name="SensoryTab" component={SensoryNavigator} />
 
       {/* 3. Direct Safety & GPS Tracking Routes */}
       <Stack.Screen name="CaregiverDashboard" component={CaregiverDashboard} />
