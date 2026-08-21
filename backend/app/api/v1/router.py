@@ -15,6 +15,9 @@ from app.realtime.websocket_routes import router as ws_router
 from app.api.v1.community.sound_routes import router as sound_router
 from app.api.v1.community.social_routes import router as social_router
 from app.api.v1.dashboard.router import router as dashboard_router
+from app.api.v1.users.routes import router as users_router
+from app.api.v1.notifications.routes import router as core_notifications_router
+from app.api.v1.health.routes import router as health_router
 
 from app.routers.safety import router as safety_router
 from app.websocket.location_socket import router as location_ws_router
@@ -23,6 +26,9 @@ router = APIRouter()
 
 router.include_router(dashboard_router)
 router.include_router(auth_router)
+router.include_router(users_router)
+router.include_router(core_notifications_router)
+router.include_router(health_router)
 router.include_router(caregivers_router)
 router.include_router(media_router)
 router.include_router(chat_router)

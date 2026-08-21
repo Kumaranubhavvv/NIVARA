@@ -32,6 +32,10 @@ def get_tokens():
     return (sarah_token, sarah_id), (david_token, david_id)
 
 def test_live_notifications_two_users_flow():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    startup_event()
+
     (sarah_token, sarah_id), (david_token, david_id) = get_tokens()
 
     # Step 1: User B (David) creates a post

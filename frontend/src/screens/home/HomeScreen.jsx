@@ -124,6 +124,15 @@ export default function HomeScreen({ navigation }) {
       case 'PROFILE':
         navigation.navigate('ChildProfile');
         break;
+      case 'COMMUNICATION':
+        navigation.navigate('CommunicationTab');
+        break;
+      case 'LEARNING':
+        navigation.navigate('LearningTab');
+        break;
+      case 'SENSORY':
+        navigation.navigate('SensoryTab');
+        break;
       default:
         break;
     }
@@ -432,6 +441,39 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.quickActionIcon}>📞</Text>
             </View>
             <Text style={styles.quickActionLabel}>Contacts</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('CommunicationTab')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#FDF2F8' }]}>
+              <Text style={styles.quickActionIcon}>🗣️</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>AAC Talker</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('LearningTab')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Text style={styles.quickActionIcon}>📅</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>Routines</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('SensoryTab')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#F0FDF4' }]}>
+              <Text style={styles.quickActionIcon}>👁️</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>Sensory Hub</Text>
           </TouchableOpacity>
         </View>
 
