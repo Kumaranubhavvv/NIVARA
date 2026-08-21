@@ -80,3 +80,80 @@ def test_invalid_location_coordinates():
     }
     res = client.post("/api/v1/safety/locations/", json=invalid_payload, headers=headers)
     assert res.status_code == 422
+
+def test_bulk_location_ingestion():
+    headers = get_sarah_auth()
+    bulk_payload = {
+        "locations": [
+            {
+                "child_id": "child-leo-1",
+                "latitude": 37.77490,
+                "longitude": -122.41940,
+                "speed": 1.2,
+                "heading": 90.0,
+            },
+            {
+                "child_id": "child-leo-1",
+                "latitude": 37.77492,
+                "longitude": -122.41942,
+                "speed": 1.5,
+                "heading": 95.0,
+            },
+            {
+                "child_id": "child-leo-1",
+                "latitude": 37.77494,
+                "longitude": -122.41944,
+                "speed": 1.8,
+                "heading": 100.0,
+            },
+        ]
+    }
+    res = client.post("/api/v1/safety/locations/bulk", json=bulk_payload, headers=headers)
+    assert res.status_code == 201
+    data = res.json()
+    assert data["accepted"] == 3
+    assert data["rejected"] == 0
+
+def test_route_playback():
+    headers = get_sarah_auth()
+
+    # Ingest 3 points
+    for i in range(3):
+        client.post(
+            "/api/v1/safety/locations/",
+            json={
+                "child_id": "child-leo-1",
+                "latitude": 37.7749 + (i * 0.001),
+                "longitude": -122.4194 + (i * 0.001),
+            },
+            headers=headers
+        )
+
+    res = client.get("/api/v1/safety/locations/playback/child-leo-1", headers=headers)
+    assert res.status_code == 200
+    playback = res.json()
+    assert playback["child_id"] == "child-leo-1"
+    assert playback["total_points"] >= 3
+    assert "waypoints" in playback
+    assert len(playback["waypoints"]) >= 3
+    assert playback["total_distance_km"] >= 0.0
+
+def test_delete_location_history():
+    headers = get_sarah_auth()
+
+    # Add 1 ping
+    client.post(
+        "/api/v1/safety/locations/",
+        json={
+            "child_id": "child-leo-1",
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+        },
+        headers=headers
+    )
+
+    del_res = client.delete("/api/v1/safety/locations/history/child-leo-1", headers=headers)
+    assert del_res.status_code == 200
+    data = del_res.json()
+    assert data["child_id"] == "child-leo-1"
+    assert data["deleted_count"] >= 1

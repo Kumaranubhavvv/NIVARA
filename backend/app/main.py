@@ -9,6 +9,13 @@ from app.api.router import api_router
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Group, GroupMember, Post, Comment, Resource, Event, SavedPost
+from app.models.child import Child
+from app.models.device import Device
+from app.models.location import Location
+from app.models.safe_zone import SafeZone
+from app.models.emergency import EmergencyAlert
+from app.models.emergency_contact import EmergencyContact
+from app.models.safety_event import SafetyEvent
 
 app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
 
@@ -322,12 +329,6 @@ def startup_event():
             db.commit()
 
         # Seed Safety demo data: Child, Device, SafeZone, Emergency Contact
-        from app.models.child import Child
-        from app.models.device import Device
-        from app.models.safe_zone import SafeZone
-        from app.models.emergency_contact import EmergencyContact
-        from app.models.location import Location
-
         leo = db.query(Child).filter(Child.id == "child-leo-1").first()
         if not leo:
             leo = Child(

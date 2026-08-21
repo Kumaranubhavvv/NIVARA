@@ -4,69 +4,91 @@ import { DEFAULT_SAFE_ZONES, DEFAULT_EMERGENCY_CONTACTS } from '../../constants/
 export const safetyApi = {
   getSafetyStatus: async () => {
     try {
-      return await apiClient.get('/safety/status');
+      const res = await apiClient.get('/safety/status');
+      return res;
     } catch (e) {
+      console.warn('[safetyApi] getSafetyStatus fallback:', e.message);
       return {
         isSafe: true,
-        childName: 'Alex Jennings',
-        age: 8,
+        childName: 'Leo Mitchell',
+        age: 7,
         status: 'Safe — Inside Home Sanctuary',
         lastUpdated: new Date().toISOString(),
-        batteryLevel: 84,
+        batteryLevel: 92,
         gpsStatus: 'ACTIVE',
         bleConnected: true,
-        currentZone: 'Home Sanctuary',
+        currentZone: 'Home (Safe Haven)',
         separationDistance: 3.8,
         activeEmergency: null,
       };
     }
   },
 
-  getCurrentLocation: async () => {
+  getCurrentLocation: async (childId = 'child-leo-1') => {
     try {
-      return await apiClient.get('/safety/location/current');
+      const res = await apiClient.get(`/safety/locations/current/${childId}`);
+      if (res && res.current_location) {
+        return {
+          latitude: res.current_location.latitude,
+          longitude: res.current_location.longitude,
+          accuracy: res.current_location.accuracy || 4.2,
+          address: res.current_location.address || '123 Serenity Way, San Francisco, CA',
+          timestamp: res.current_location.recorded_at || res.current_location.created_at || new Date().toISOString(),
+          speed: res.current_location.speed || 0.0,
+          heading: res.current_location.heading || 0.0,
+          batteryLevel: res.battery_percentage || 92,
+          isSafe: res.is_safe,
+          activeZoneName: res.active_zone_name,
+        };
+      }
+      return res;
     } catch (e) {
+      console.warn('[safetyApi] getCurrentLocation fallback:', e.message);
       return {
-        latitude: 30.9010,
-        longitude: 75.8573,
+        latitude: 37.7750,
+        longitude: -122.4195,
         accuracy: 4.2,
-        address: '123 Maple Street, Model Town, Ludhiana',
+        address: '123 Serenity Way, San Francisco, CA',
         timestamp: new Date().toISOString(),
-        speed: 0.2,
-        heading: 45,
+        speed: 0.0,
+        heading: 90,
       };
     }
   },
 
   getLocationHistory: async (params = {}) => {
     try {
-      const query = params.limit ? `?limit=${params.limit}` : '';
-      return await apiClient.get(`/safety/location/history${query}`);
+      const childId = params.childId || 'child-leo-1';
+      const limit = params.limit || 50;
+      return await apiClient.get(`/safety/locations/history/${childId}?limit=${limit}`);
     } catch (e) {
+      console.warn('[safetyApi] getLocationHistory fallback:', e.message);
       return [
-        { id: 'lh-1', latitude: 30.9010, longitude: 75.8573, time: 'Just now', label: 'Home Sanctuary' },
-        { id: 'lh-2', latitude: 30.9030, longitude: 75.8550, time: '20 mins ago', label: 'Model Town Park' },
-        { id: 'lh-3', latitude: 30.9120, longitude: 75.8450, time: '2 hours ago', label: 'Oakridge School' },
+        { id: 'lh-1', latitude: 37.7750, longitude: -122.4195, time: 'Just now', label: 'Home (Safe Haven)' },
+        { id: 'lh-2', latitude: 37.7760, longitude: -122.4190, time: '20 mins ago', label: 'Sensory Park' },
+        { id: 'lh-3', latitude: 37.7800, longitude: -122.4200, time: '2 hours ago', label: 'Sunshine Academy School' },
       ];
     }
   },
 
-  getSafeZones: async () => {
+  getSafeZones: async (childId = 'child-leo-1') => {
     try {
-      return await apiClient.get('/safety/safe-zones');
+      return await apiClient.get(`/safety/safe-zones/child/${childId}`);
     } catch (e) {
+      console.warn('[safetyApi] getSafeZones fallback:', e.message);
       return DEFAULT_SAFE_ZONES;
     }
   },
 
   createSafeZone: async (zoneData) => {
     try {
-      return await apiClient.post('/safety/safe-zones', zoneData);
+      return await apiClient.post('/safety/safe-zones/', zoneData);
     } catch (e) {
+      console.warn('[safetyApi] createSafeZone fallback:', e.message);
       return {
-        id: `zone-${Date.now()}`,
+        id: `sz-${Date.now()}`,
         ...zoneData,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       };
     }
   },
@@ -75,7 +97,8 @@ export const safetyApi = {
     try {
       return await apiClient.put(`/safety/safe-zones/${zoneId}`, zoneData);
     } catch (e) {
-      return { id: zoneId, ...zoneData, updatedAt: new Date().toISOString() };
+      console.warn('[safetyApi] updateSafeZone fallback:', e.message);
+      return { id: zoneId, ...zoneData, updated_at: new Date().toISOString() };
     }
   },
 
@@ -83,189 +106,174 @@ export const safetyApi = {
     try {
       return await apiClient.delete(`/safety/safe-zones/${zoneId}`);
     } catch (e) {
-      return { success: true, deletedId: zoneId };
+      console.warn('[safetyApi] deleteSafeZone fallback:', e.message);
+      return { message: 'Safe zone deleted', id: zoneId };
     }
   },
 
-  getBandStatus: async () => {
+  getBandStatus: async (childId = 'child-leo-1') => {
     try {
-      return await apiClient.get('/safety/band/status');
+      return await apiClient.get(`/safety/devices/band/status?child_id=${childId}`);
     } catch (e) {
+      console.warn('[safetyApi] getBandStatus fallback:', e.message);
       return {
-        id: 'NV-BAND-8821',
-        name: 'Nivara GPS SmartBand v2',
-        model: 'CoreBand Pro',
+        id: 'NV-BAND-LEO-001',
+        name: 'NIVARA Smart SafeBand',
+        model: 'Gps_band',
         connected: true,
-        battery: 84,
+        battery: 92,
         isCharging: false,
         gpsStatus: 'ACTIVE',
         rssi: -58,
         distanceMeters: 3.8,
         lastSync: new Date().toISOString(),
-        firmware: 'v2.4.12',
+        firmware: 'v1.2.0',
       };
     }
   },
 
   connectBand: async (deviceId) => {
     try {
-      return await apiClient.post('/safety/band/connect', { deviceId });
+      return await apiClient.post('/safety/devices/band/connect', { deviceId });
     } catch (e) {
-      return { success: true, status: 'CONNECTED', deviceId: deviceId || 'NV-BAND-8821' };
+      console.warn('[safetyApi] connectBand fallback:', e.message);
+      return { success: true, status: 'CONNECTED', deviceId: deviceId || 'NV-BAND-LEO-001' };
     }
   },
 
   disconnectBand: async (deviceId) => {
     try {
-      return await apiClient.post('/safety/band/disconnect', { deviceId });
+      return await apiClient.post('/safety/devices/band/disconnect', { deviceId });
     } catch (e) {
+      console.warn('[safetyApi] disconnectBand fallback:', e.message);
       return { success: true, status: 'DISCONNECTED' };
     }
   },
 
   getEmergencyContacts: async () => {
     try {
-      return await apiClient.get('/safety/contacts');
+      return await apiClient.get('/safety/emergency-contacts/');
     } catch (e) {
+      console.warn('[safetyApi] getEmergencyContacts fallback:', e.message);
       return DEFAULT_EMERGENCY_CONTACTS;
     }
   },
 
   addEmergencyContact: async (contactData) => {
     try {
-      return await apiClient.post('/safety/contacts', contactData);
+      return await apiClient.post('/safety/emergency-contacts/', contactData);
     } catch (e) {
+      console.warn('[safetyApi] addEmergencyContact fallback:', e.message);
       return {
-        id: `ec-${Date.now()}`,
+        id: `contact-${Date.now()}`,
         ...contactData,
-        priority: 4,
+        priority_order: contactData.priority_order || 1,
       };
     }
   },
 
   updateEmergencyContact: async (contactId, contactData) => {
     try {
-      return await apiClient.put(`/safety/contacts/${contactId}`, contactData);
+      return await apiClient.put(`/safety/emergency-contacts/${contactId}`, contactData);
     } catch (e) {
+      console.warn('[safetyApi] updateEmergencyContact fallback:', e.message);
       return { id: contactId, ...contactData };
     }
   },
 
   deleteEmergencyContact: async (contactId) => {
     try {
-      return await apiClient.delete(`/safety/contacts/${contactId}`);
+      return await apiClient.delete(`/safety/emergency-contacts/${contactId}`);
     } catch (e) {
-      return { success: true, deletedId: contactId };
+      console.warn('[safetyApi] deleteEmergencyContact fallback:', e.message);
+      return { message: 'Emergency contact deleted', id: contactId };
     }
   },
 
   triggerEmergency: async (payload) => {
     try {
-      return await apiClient.post('/safety/emergency/trigger', payload);
+      const body = {
+        child_id: payload.child_id || payload.childId || 'child-leo-1',
+        triggered_by: payload.triggered_by || payload.type || 'sos_button',
+        severity: payload.severity || 'critical',
+        latitude: payload.latitude || payload.location?.latitude || 37.7749,
+        longitude: payload.longitude || payload.location?.longitude || -122.4194,
+        address: payload.address || '123 Serenity Way, San Francisco, CA',
+        message: payload.message || 'EMERGENCY SOS Triggered from Caregiver Mobile!',
+      };
+      return await apiClient.post('/safety/emergencies/sos', body);
     } catch (e) {
+      console.warn('[safetyApi] triggerEmergency fallback:', e.message);
       return {
         id: `emg-${Date.now()}`,
-        status: 'ACTIVE',
-        type: payload.type || 'SOS_PANIC',
-        location: payload.location || { latitude: 30.9010, longitude: 75.8573 },
-        triggeredAt: new Date().toISOString(),
-        contactsNotified: true,
+        status: 'active',
+        severity: 'critical',
+        message: payload.message || 'EMERGENCY SOS Triggered!',
+        created_at: new Date().toISOString(),
       };
     }
   },
 
-  resolveEmergency: async (emergencyId) => {
+  resolveEmergency: async (emergencyId, resolutionNotes = 'Resolved by caregiver') => {
     try {
-      return await apiClient.post(`/safety/emergency/${emergencyId}/resolve`);
+      return await apiClient.post(`/safety/emergencies/${emergencyId}/resolve`, {
+        status: 'resolved',
+        resolution_notes: resolutionNotes,
+      });
     } catch (e) {
-      return { success: true, status: 'RESOLVED', emergencyId };
+      console.warn('[safetyApi] resolveEmergency fallback:', e.message);
+      return { id: emergencyId, status: 'resolved', resolution_notes: resolutionNotes };
     }
   },
 
   getSafetyEvents: async (params = {}) => {
     try {
-      const query = params.category ? `?category=${params.category}` : '';
-      return await apiClient.get(`/safety/events${query}`);
+      const query = params.event_type ? `?event_type=${params.event_type}` : '';
+      return await apiClient.get(`/safety/safety-events/${query}`);
     } catch (e) {
+      console.warn('[safetyApi] getSafetyEvents fallback:', e.message);
       return [
         {
           id: 'ev-1',
-          type: 'SAFE_ZONE_ENTRY',
-          title: 'Entered Home Sanctuary',
-          desc: 'Child safely entered within Home Sanctuary geofence boundary.',
-          location: '123 Maple Street, Model Town, Ludhiana',
-          time: '10:32 AM',
-          timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-          status: 'SAFE',
-          isSafe: true,
-          device: 'Nivara GPS Band v2',
-          battery: '84%',
-          gpsAccuracy: '±3m',
-        },
-        {
-          id: 'ev-2',
-          type: 'LOCATION_UPDATED',
-          title: 'GPS Telemetry Refresh',
-          desc: 'Precise coordinates calibrated via hybrid satellite beacon.',
-          location: '123 Maple Street, Model Town, Ludhiana',
-          time: '10:15 AM',
-          timestamp: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-          status: 'NORMAL',
-          isSafe: true,
-          device: 'Nivara GPS Band v2',
-          battery: '85%',
-          gpsAccuracy: '±4m',
-        },
-        {
-          id: 'ev-3',
-          type: 'BAND_CONNECTED',
-          title: 'SmartBand Tether Active',
-          desc: 'Bluetooth Low Energy proximity tether connected at RSSI -58 dBm.',
-          location: '123 Maple Street, Model Town, Ludhiana',
-          time: '09:48 AM',
-          timestamp: new Date(Date.now() - 1000 * 60 * 69).toISOString(),
-          status: 'CONNECTED',
-          isSafe: true,
-          device: 'Nivara GPS Band v2',
-          battery: '86%',
-          gpsAccuracy: '±4m',
-        },
-        {
-          id: 'ev-4',
-          type: 'SAFE_ZONE_EXIT',
-          title: 'Departed Oakridge School',
-          desc: 'Child exited school perimeter alongside approved caregiver.',
-          location: '456 Oak Avenue, Civil Lines, Ludhiana',
-          time: '09:30 AM',
-          timestamp: new Date(Date.now() - 1000 * 60 * 87).toISOString(),
-          status: 'INFO',
-          isSafe: true,
-          device: 'Nivara GPS Band v2',
-          battery: '88%',
-          gpsAccuracy: '±5m',
+          event_type: 'geofence_entry',
+          title: 'Entered Home (Safe Haven)',
+          description: 'Child safely entered within Home boundary.',
+          latitude: 37.7750,
+          longitude: -122.4195,
+          created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+          severity: 'info',
         },
       ];
     }
   },
 
-  getSafetyEventById: async (eventId) => {
+  evaluateGeofence: async (childId, latitude, longitude) => {
     try {
-      return await apiClient.get(`/safety/events/${eventId}`);
+      return await apiClient.post('/safety/geofence/evaluate', {
+        child_id: childId || 'child-leo-1',
+        latitude,
+        longitude,
+        create_events: true,
+      });
     } catch (e) {
-      return {
-        id: eventId,
-        type: 'SAFE_ZONE_ENTRY',
-        title: 'Entered Home Sanctuary',
-        desc: 'Child safely entered within Home Sanctuary geofence boundary.',
-        location: '123 Maple Street, Model Town, Ludhiana',
-        time: 'Today, 10:32 AM',
-        timestamp: new Date().toISOString(),
-        status: 'SAFE',
-        isSafe: true,
-        device: 'Nivara GPS Band v2',
-        battery: '84%',
-        gpsAccuracy: '±3m',
-      };
+      console.warn('[safetyApi] evaluateGeofence fallback:', e.message);
+      return { is_inside_safe_zone: true, status: 'safe' };
+    }
+  },
+
+  checkSeparation: async (childId, childLat, childLon, caregiverLat, caregiverLon) => {
+    try {
+      return await apiClient.post('/safety/separation/evaluate', {
+        child_id: childId || 'child-leo-1',
+        child_latitude: childLat,
+        child_longitude: childLon,
+        caregiver_latitude: caregiverLat,
+        caregiver_longitude: caregiverLon,
+        create_event: true,
+      });
+    } catch (e) {
+      console.warn('[safetyApi] checkSeparation fallback:', e.message);
+      return { is_separated: false, proximity_zone: 'immediate', distance_meters: 3.8 };
     }
   },
 };

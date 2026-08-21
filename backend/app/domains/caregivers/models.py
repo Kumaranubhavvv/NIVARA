@@ -1,31 +1,21 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from app.core.database import Base
-
-class Caregiver(Base):
-    __tablename__ = "caregivers"
-
-    id = Column(String, primary_key=True, default=lambda: f"cg-{uuid.uuid4().hex[:8]}")
-    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
-    bio = Column(String, nullable=True, default="Parent caregiver")
-    avatar_url = Column(String, nullable=True)
-    is_verified = Column(Boolean, default=False)
-    verification_status = Column(String, default="pending")  # pending, verified, rejected
-    is_online = Column(Boolean, default=False)
-    last_seen = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+from app.models.user import Caregiver
 
 class CaregiverBlock(Base):
     __tablename__ = "caregiver_blocks"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=lambda: f"block-{uuid.uuid4().hex[:8]}")
     blocker_id = Column(String, ForeignKey("users.id"), nullable=False)
     blocked_id = Column(String, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class ContentReport(Base):
     __tablename__ = "content_reports"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=lambda: f"report-{uuid.uuid4().hex[:8]}")
     reporter_id = Column(String, ForeignKey("users.id"), nullable=False)
@@ -33,10 +23,11 @@ class ContentReport(Base):
     target_id = Column(String, nullable=False)
     reason = Column(String, nullable=False)
     status = Column(String, default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class CaregiverPrivacySettings(Base):
     __tablename__ = "caregiver_privacy_settings"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=lambda: f"priv-{uuid.uuid4().hex[:8]}")
     user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
@@ -53,16 +44,23 @@ class CaregiverPrivacySettings(Base):
     filter_unknown_senders = Column(Boolean, default=True)
     read_receipts = Column(Boolean, default=False)
     
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class VerificationSubmission(Base):
     __tablename__ = "verification_submissions"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=lambda: f"verif-{uuid.uuid4().hex[:8]}")
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     role_bio = Column(String, nullable=True)
     document_notes = Column(String, nullable=True)
     status = Column(String, default="pending")  # pending, verified, rejected
-    submitted_at = Column(DateTime, default=datetime.utcnow)
+    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-
+__all__ = [
+    "Caregiver",
+    "CaregiverBlock",
+    "ContentReport",
+    "CaregiverPrivacySettings",
+    "VerificationSubmission",
+]

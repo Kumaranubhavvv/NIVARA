@@ -2,6 +2,8 @@ from app.routers.safety import router as safety_router
 from app.routers.location import router as location_router
 from app.routers.devices import router as devices_router
 from app.routers.safe_zones import router as safe_zones_router
+from app.routers.geofence import router as geofence_router
+from app.routers.separation import router as separation_router
 from app.routers.emergencies import router as emergencies_router
 from app.routers.emergency_contacts import router as emergency_contacts_router
 from app.routers.safety_events import router as safety_events_router
@@ -11,6 +13,8 @@ __all__ = [
     "location_router",
     "devices_router",
     "safe_zones_router",
+    "geofence_router",
+    "separation_router",
     "emergencies_router",
     "emergency_contacts_router",
     "safety_events_router",

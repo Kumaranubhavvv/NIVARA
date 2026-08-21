@@ -62,3 +62,47 @@ def test_device_heartbeat_and_low_battery_trigger():
     dev_res = client.get("/api/v1/safety/devices/dev-band-leo-1", headers=headers)
     assert dev_res.status_code == 200
     assert dev_res.json()["battery_level"] == 10
+
+def test_device_summary_and_pairing_lifecycle():
+    headers = get_sarah_auth()
+
+    # 1. Register unassigned device
+    reg_res = client.post(
+        "/api/v1/safety/devices/",
+        json={
+            "device_name": "Secondary Smartband",
+            "device_type": "smartwatch",
+            "serial_number": "WATCH-554433",
+            "battery_level": 88,
+        },
+        headers=headers
+    )
+    assert reg_res.status_code == 201
+    device_id = reg_res.json()["id"]
+
+    # 2. Pair device to Leo
+    pair_res = client.post(
+        "/api/v1/safety/devices/pair",
+        json={
+            "device_id": device_id,
+            "child_id": "child-leo-1",
+            "force": False
+        },
+        headers=headers
+    )
+    assert pair_res.status_code == 200
+    assert pair_res.json()["child_id"] == "child-leo-1"
+
+    # 3. Get summary
+    sum_res = client.get(f"/api/v1/safety/devices/{device_id}/summary", headers=headers)
+    assert sum_res.status_code == 200
+    assert sum_res.json()["battery_level"] == 88
+
+    # 4. Unpair device
+    unpair_res = client.post(f"/api/v1/safety/devices/unpair/{device_id}", headers=headers)
+    assert unpair_res.status_code == 200
+    assert unpair_res.json()["child_id"] is None
+
+    # 5. Delete device
+    del_res = client.delete(f"/api/v1/safety/devices/{device_id}?soft_delete=true", headers=headers)
+    assert del_res.status_code == 200
