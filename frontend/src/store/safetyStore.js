@@ -4,24 +4,25 @@ import { safetyApi } from '../services/api/safetyApi';
 
 export const useSafetyStore = create((set, get) => ({
   // Child & Safety Status
-  childName: 'Alex Jennings',
+  childId: 'child-leo-1',
+  childName: 'Leo Mitchell',
   childAge: 8,
   childStatus: 'Safe — Inside Home Sanctuary',
   isSafe: true,
-  currentZone: 'Home Sanctuary',
-  batteryLevel: 84,
+  currentZone: 'Home Safe Zone',
+  batteryLevel: 88,
   gpsStatus: 'ACTIVE',
   bleConnected: true,
-  separationDistance: 3.8,
+  separationDistance: 1.4,
   isLocationSharingOn: true,
   accuracyMode: 'HIGH',
 
   // Real-time location
   currentLocation: {
-    latitude: 30.9010,
-    longitude: 75.8573,
-    accuracy: 4.2,
-    address: '123 Maple Street, Model Town, Ludhiana',
+    latitude: 37.7749,
+    longitude: -122.4194,
+    accuracy: 3.5,
+    address: '742 Evergreen Terrace, Springfield',
     timestamp: new Date().toISOString(),
   },
   locationLoading: false,
@@ -45,17 +46,24 @@ export const useSafetyStore = create((set, get) => ({
   safetyEvents: [],
   eventsLoading: false,
 
+  // Device & Overview
+  safetyOverview: null,
+  overviewLoading: false,
+
   // Actions
+  setChildId: (id) => set({ childId: id }),
+
   fetchSafetyStatus: async () => {
     try {
-      const data = await safetyApi.getSafetyStatus();
+      const childId = get().childId;
+      const data = await safetyApi.getSafetyStatus(childId);
       if (data) {
         set({
           isSafe: data.isSafe ?? true,
           childName: data.childName || get().childName,
           childAge: data.age || get().childAge,
           childStatus: data.status || get().childStatus,
-          batteryLevel: data.batteryLevel || get().batteryLevel,
+          batteryLevel: data.batteryLevel || data.battery || get().batteryLevel,
           gpsStatus: data.gpsStatus || get().gpsStatus,
           bleConnected: data.bleConnected ?? get().bleConnected,
           currentZone: data.currentZone || get().currentZone,
@@ -68,7 +76,8 @@ export const useSafetyStore = create((set, get) => ({
   fetchLocation: async () => {
     set({ locationLoading: true, locationError: null });
     try {
-      const loc = await safetyApi.getCurrentLocation();
+      const childId = get().childId;
+      const loc = await safetyApi.getCurrentLocation(childId);
       set({ currentLocation: loc, locationLoading: false });
     } catch (err) {
       set({ locationLoading: false, locationError: err.message });
@@ -78,7 +87,8 @@ export const useSafetyStore = create((set, get) => ({
   fetchSafeZones: async () => {
     set({ safeZonesLoading: true });
     try {
-      const zones = await safetyApi.getSafeZones();
+      const childId = get().childId;
+      const zones = await safetyApi.getSafeZones(childId);
       set({ safeZones: zones || DEFAULT_SAFE_ZONES, safeZonesLoading: false });
     } catch (e) {
       set({ safeZonesLoading: false });
@@ -86,7 +96,10 @@ export const useSafetyStore = create((set, get) => ({
   },
 
   addSafeZone: async (zoneData) => {
-    const created = await safetyApi.createSafeZone(zoneData);
+    const created = await safetyApi.createSafeZone({
+      child_id: get().childId,
+      ...zoneData,
+    });
     set((state) => ({ safeZones: [created, ...state.safeZones] }));
     return created;
   },
@@ -115,7 +128,8 @@ export const useSafetyStore = create((set, get) => ({
   fetchEmergencyContacts: async () => {
     set({ contactsLoading: true });
     try {
-      const contacts = await safetyApi.getEmergencyContacts();
+      const childId = get().childId;
+      const contacts = await safetyApi.getEmergencyContacts(childId);
       set({ emergencyContacts: contacts || DEFAULT_EMERGENCY_CONTACTS, contactsLoading: false });
     } catch (e) {
       set({ contactsLoading: false });
@@ -123,7 +137,10 @@ export const useSafetyStore = create((set, get) => ({
   },
 
   addEmergencyContact: async (contactData) => {
-    const created = await safetyApi.addEmergencyContact(contactData);
+    const created = await safetyApi.addEmergencyContact({
+      child_id: get().childId,
+      ...contactData,
+    });
     set((state) => ({ emergencyContacts: [...state.emergencyContacts, created] }));
     return created;
   },
@@ -156,6 +173,7 @@ export const useSafetyStore = create((set, get) => ({
   triggerSOS: async (customPayload = {}) => {
     set({ emergencyLoading: true });
     const payload = {
+      child_id: get().childId,
       type: 'SOS_PANIC',
       childName: get().childName,
       location: get().currentLocation,
@@ -184,10 +202,10 @@ export const useSafetyStore = create((set, get) => ({
     }
   },
 
-  resolveEmergency: async (emergencyId) => {
+  resolveEmergency: async (emergencyId, notes = 'Emergency resolved by caregiver.') => {
     set({ emergencyLoading: true });
     try {
-      await safetyApi.resolveEmergency(emergencyId || get().activeEmergency?.id);
+      await safetyApi.resolveEmergency(emergencyId || get().activeEmergency?.id, notes);
     } catch (e) {}
     set({
       isEmergencyActive: false,
@@ -197,13 +215,26 @@ export const useSafetyStore = create((set, get) => ({
     });
   },
 
-  fetchSafetyEvents: async (params) => {
+  fetchSafetyEvents: async (params = {}) => {
     set({ eventsLoading: true });
     try {
-      const events = await safetyApi.getSafetyEvents(params);
+      const childId = get().childId;
+      const events = await safetyApi.getSafetyEvents({ child_id: childId, ...params });
       set({ safetyEvents: events || [], eventsLoading: false });
     } catch (e) {
       set({ eventsLoading: false });
+    }
+  },
+
+  fetchSafetyOverview: async () => {
+    set({ overviewLoading: true });
+    try {
+      const childId = get().childId;
+      const overview = await safetyApi.getSafetyOverview(childId);
+      set({ safetyOverview: overview, overviewLoading: false });
+      return overview;
+    } catch (e) {
+      set({ overviewLoading: false });
     }
   },
 

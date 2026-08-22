@@ -16,7 +16,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None) -> str:
+from typing import Optional, Union
+
+def create_access_token(user_id_or_data: Union[str, dict], expires_delta: Optional[timedelta] = None) -> str:
+    if isinstance(user_id_or_data, dict):
+        user_id = user_id_or_data.get("sub") or user_id_or_data.get("user_id") or str(user_id_or_data)
+    else:
+        user_id = str(user_id_or_data)
+
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -29,6 +36,10 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
 def decode_access_token(token: str) -> Optional[str]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload.get("sub")
+        sub = payload.get("sub")
+        if isinstance(sub, dict):
+            return sub.get("sub") or sub.get("user_id")
+        return sub
     except Exception:
         return None
+

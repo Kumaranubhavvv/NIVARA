@@ -8,12 +8,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.main import app, startup_event
 from app.config.database import Base, engine
 
-@pytest.fixture(autouse=True)
-def setup_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    startup_event()
-
 client = TestClient(app)
 
 def get_sarah_auth():

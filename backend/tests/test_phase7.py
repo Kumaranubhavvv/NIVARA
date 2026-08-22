@@ -8,11 +8,6 @@ from fastapi.testclient import TestClient
 from app.main import app, startup_event
 from app.core.database import Base, engine
 
-# Ensure clean schema reset
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-startup_event()
-
 client = TestClient(app)
 
 def get_tokens():

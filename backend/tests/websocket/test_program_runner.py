@@ -8,11 +8,6 @@ from fastapi.testclient import TestClient
 from app.main import app, startup_event
 from app.core.database import Base, engine
 
-def setup_module(module):
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    startup_event()
-
 client = TestClient(app)
 
 def test_websocket_30_programs_execution():

@@ -11,10 +11,7 @@ from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Post, Comment, PostLike
 from app.domains.notifications.models import Notification
 
-# Reset and seed DB
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-startup_event()
+import pytest
 
 client = TestClient(app)
 

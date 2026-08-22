@@ -8,10 +8,6 @@ from app.main import app, startup_event
 from app.core.database import Base, engine, SessionLocal
 from app.domains.community.models import Post, Comment, PostLike
 
-# Ensure clean DB setup
-Base.metadata.create_all(bind=engine)
-startup_event()
-
 client = TestClient(app)
 
 def test_two_users_comments_and_likes_flow():

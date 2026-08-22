@@ -10,10 +10,7 @@ from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Conversation, DirectMessage
 
-# Reset and re-seed database
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-startup_event()
+import pytest
 
 client = TestClient(app)
 

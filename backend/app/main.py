@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect
-from app.core.database import Base, engine, SessionLocal
+from app.core.database import Base, engine, SessionLocal, sync_database_schema
 from app.core.security import get_password_hash
 from app.api.router import api_router
 from app.domains.users.models import User
@@ -48,88 +48,109 @@ def health_check():
     return {"status": "ok"}
 
 def startup_event():
-    # If existing DB schema lacks new columns, reset tables
-    try:
-        inspector = inspect(engine)
-        if "groups" in inspector.get_table_names():
-            columns = [c["name"] for c in inspector.get_columns("groups")]
-            if "avatar_url" not in columns:
-                Base.metadata.drop_all(bind=engine)
-    except Exception:
-        pass
-
     Base.metadata.create_all(bind=engine)
+    sync_database_schema(engine)
     db = SessionLocal()
     try:
         # Seed test users if not present
-        sarah = db.query(User).filter(User.email == "sarah@nivara.app").first()
+        sarah = db.query(User).filter((User.email == "sarah@nivara.app") | (User.id == "user-verified-sarah")).first()
         if not sarah:
-            sarah = User(
-                id="user-verified-sarah",
-                email="sarah@nivara.app",
-                hashed_password=get_password_hash("password123"),
-                full_name="Sarah Mitchell",
-                role="caregiver",
-            )
-            db.add(sarah)
-            db.commit()
-            db.refresh(sarah)
+            try:
+                sarah = User(
+                    id="user-verified-sarah",
+                    email="sarah@nivara.app",
+                    hashed_password=get_password_hash("password123"),
+                    full_name="Sarah Mitchell",
+                    role="caregiver",
+                )
+                db.add(sarah)
+                db.commit()
+                db.refresh(sarah)
+            except Exception:
+                db.rollback()
+                sarah = db.query(User).filter(User.email == "sarah@nivara.app").first()
 
-            sarah_cg = Caregiver(
-                user_id=sarah.id,
-                bio="ABA therapist & caregiver",
-                is_verified=True,
-                verification_status="verified",
-                is_online=True,
-            )
-            db.add(sarah_cg)
-            db.commit()
+        if sarah:
+            sarah_cg = db.query(Caregiver).filter(Caregiver.user_id == sarah.id).first()
+            if not sarah_cg:
+                try:
+                    sarah_cg = Caregiver(
+                        user_id=sarah.id,
+                        bio="ABA therapist & caregiver",
+                        is_verified=True,
+                        verification_status="verified",
+                        is_online=True,
+                    )
+                    db.add(sarah_cg)
+                    db.commit()
+                except Exception:
+                    db.rollback()
 
-        david = db.query(User).filter(User.email == "david@nivara.app").first()
+        david = db.query(User).filter((User.email == "david@nivara.app") | (User.id == "user-verified-david")).first()
         if not david:
-            david = User(
-                id="user-verified-david",
-                email="david@nivara.app",
-                hashed_password=get_password_hash("password123"),
-                full_name="David Nguyen",
-                role="caregiver",
-            )
-            db.add(david)
-            db.commit()
-            db.refresh(david)
+            try:
+                david = User(
+                    id="user-verified-david",
+                    email="david@nivara.app",
+                    hashed_password=get_password_hash("password123"),
+                    full_name="David Nguyen",
+                    role="caregiver",
+                )
+                db.add(david)
+                db.commit()
+                db.refresh(david)
+            except Exception:
+                db.rollback()
+                david = db.query(User).filter(User.email == "david@nivara.app").first()
 
-            david_cg = Caregiver(
-                user_id=david.id,
-                bio="Special education teacher & caregiver",
-                is_verified=True,
-                verification_status="verified",
-                is_online=False,
-            )
-            db.add(david_cg)
-            db.commit()
+        if david:
+            david_cg = db.query(Caregiver).filter(Caregiver.user_id == david.id).first()
+            if not david_cg:
+                try:
+                    david_cg = Caregiver(
+                        user_id=david.id,
+                        bio="Special education teacher & caregiver",
+                        is_verified=True,
+                        verification_status="verified",
+                        is_online=False,
+                    )
+                    db.add(david_cg)
+                    db.commit()
+                except Exception:
+                    db.rollback()
 
-        lisa = db.query(User).filter(User.email == "lisa@nivara.app").first()
+        lisa = db.query(User).filter((User.email == "lisa@nivara.app") | (User.id == "user-unverified-lisa")).first()
         if not lisa:
-            lisa = User(
-                id="user-unverified-lisa",
-                email="lisa@nivara.app",
-                hashed_password=get_password_hash("password123"),
-                full_name="Lisa Chen",
-                role="caregiver",
-            )
-            db.add(lisa)
-            db.commit()
-            db.refresh(lisa)
+            try:
+                lisa = User(
+                    id="user-unverified-lisa",
+                    email="lisa@nivara.app",
+                    hashed_password=get_password_hash("password123"),
+                    full_name="Lisa Chen",
+                    role="caregiver",
+                )
+                db.add(lisa)
+                db.commit()
+                db.refresh(lisa)
+            except Exception:
+                db.rollback()
+                lisa = db.query(User).filter(User.email == "lisa@nivara.app").first()
 
-            lisa_cg = Caregiver(
-                user_id=lisa.id,
-                bio="Parent caregiver",
-                is_verified=False,
-                verification_status="pending",
-                is_online=False,
-            )
-            db.add(lisa_cg)
-            db.commit()
+        if lisa:
+            lisa_cg = db.query(Caregiver).filter(Caregiver.user_id == lisa.id).first()
+            if not lisa_cg:
+                try:
+                    lisa_cg = Caregiver(
+                        user_id=lisa.id,
+                        bio="Parent caregiver",
+                        is_verified=False,
+                        verification_status="pending",
+                        is_online=False,
+                    )
+                    db.add(lisa_cg)
+                    db.commit()
+                except Exception:
+                    db.rollback()
 
         # Seed group-sensory-1 for Phase 5 tests if not present
         group = db.query(Group).filter(Group.id == "group-sensory-1").first()
@@ -444,6 +465,23 @@ def startup_event():
                     AACCard(id="card-anxious", category_id="cat-feelings", label="Anxious", spoken_text="worried", icon="😰", part_of_speech="adjective", usage_count=11),
                 ]
                 db.add_all(cards)
+                db.commit()
+
+            # Seed Default Common Communication Phrases
+            if db.query(SavedPhrase).count() == 0:
+                common_phrases = [
+                    SavedPhrase(id="phrase-help", text="I need help", category="Emergency & Help", icon="🆘", is_favorite=False, usage_count=50, use_count=50),
+                    SavedPhrase(id="phrase-hungry", text="I am hungry", category="Food & Drink", icon="🍽️", is_favorite=False, usage_count=45, use_count=45),
+                    SavedPhrase(id="phrase-thirsty", text="I am thirsty", category="Food & Drink", icon="🥤", is_favorite=False, usage_count=40, use_count=40),
+                    SavedPhrase(id="phrase-break", text="I need a break", category="Comfort & Calm", icon="⏸️", is_favorite=False, usage_count=35, use_count=35),
+                    SavedPhrase(id="phrase-play", text="I want to play", category="Activities", icon="🧸", is_favorite=False, usage_count=30, use_count=30),
+                    SavedPhrase(id="phrase-toilet", text="I need the toilet", category="Daily Needs", icon="🚻", is_favorite=False, usage_count=38, use_count=38),
+                    SavedPhrase(id="phrase-uncomfortable", text="I feel uncomfortable", category="Feelings", icon="😣", is_favorite=False, usage_count=20, use_count=20),
+                    SavedPhrase(id="phrase-please-help", text="Please help me", category="Emergency & Help", icon="🙏", is_favorite=False, usage_count=28, use_count=28),
+                    SavedPhrase(id="phrase-yes", text="Yes, please", category="Quick Responses", icon="👍", is_favorite=False, usage_count=60, use_count=60),
+                    SavedPhrase(id="phrase-no", text="No, thank you", category="Quick Responses", icon="✋", is_favorite=False, usage_count=55, use_count=55),
+                ]
+                db.add_all(common_phrases)
                 db.commit()
 
             # Seed Default Routines & Steps

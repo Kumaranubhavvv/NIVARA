@@ -10,11 +10,6 @@ from app.core.database import Base, engine, SessionLocal
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
 
-def setup_module(module):
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    startup_event()
-
 client = TestClient(app)
 
 def get_user_tokens():

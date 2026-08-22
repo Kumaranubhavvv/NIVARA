@@ -22,6 +22,7 @@ class Location(Base):
     heading = Column(Float, default=0.0)  # 0 - 360 degrees
     battery_level = Column(Float, nullable=True)
     address = Column(String, nullable=True)
+    source = Column(String, nullable=True, default="gps")  # gps, network, device, manual
     recorded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
