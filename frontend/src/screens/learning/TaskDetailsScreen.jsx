@@ -2,213 +2,294 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { useLearning } from '../../hooks/useLearning';
 
-const { width } = Dimensions.get('window');
+export default function TaskDetailsScreen({ navigation }) {
+  const { brokenDownSteps, breakdownTask, loading } = useLearning();
+  const [taskInput, setTaskInput] = useState('');
+  const [completedSteps, setCompletedSteps] = useState({});
 
-const TOPIC_STEPS = {
-  't1': [ // Supermarket
-    { id: 'ts1', title: 'Hold the shopping cart handles', emoji: '🛒', desc: 'Stay close to your caregiver and walk slowly.' },
-    { id: 'ts2', title: 'Pick items on your list', emoji: '🍎', desc: 'Find apples, milk, and bread together.' },
-    { id: 'ts3', title: 'Wait patiently in checkout line', emoji: '🚶‍♂️', desc: 'Take deep breaths if it feels crowded.' },
-  ],
-  't2': [ // Crossing Road
-    { id: 'ts4', title: 'Stop at the curb', emoji: '🚶‍♂️', desc: 'Never step into the street without looking first.' },
-    { id: 'ts5', title: 'Look left, right, and left again', emoji: '👀', desc: 'Make sure no cars are coming.' },
-    { id: 'ts6', title: 'Listen for engine noises', emoji: '👂', desc: 'Keep your ears open for moving traffic.' },
-    { id: 'ts7', title: 'Walk quickly across the road', emoji: '🚦', desc: 'Keep holding hands and cross when it is clear.' },
-  ],
-  't3': [ // Calming
-    { id: 'ts8', title: 'Recognize the loud noise', emoji: '🔊', desc: 'It is just a temporary siren or machine.' },
-    { id: 'ts9', title: 'Put on noise-canceling headphones', emoji: '🎧', desc: 'This makes the sound soft and quiet.' },
-    { id: 'ts10', title: 'Count slowly to 5', emoji: '🖐️', desc: '1... 2... 3... 4... 5... I am calm.' },
-  ],
-};
+  const sampleTasks = ['Brush Teeth', 'Pack Backpack', 'Wash Hands', 'Tidy Room', 'Make Bed'];
 
-export default function TaskDetailsScreen({ route, navigation }) {
-  const { topic } = route.params || { topic: { id: 't2', title: 'Crossing the Road Safely' } };
-  const steps = TOPIC_STEPS[topic.id] || [];
-
-  const [activeStepIdx, setActiveStepIdx] = useState(0);
-
-  const handleNext = () => {
-    if (activeStepIdx < steps.length - 1) {
-      setActiveStepIdx((prev) => prev + 1);
-    } else {
-      navigation.goBack();
-    }
+  const handleBreakdown = (title) => {
+    const t = title || taskInput;
+    if (!t.trim()) return;
+    setCompletedSteps({});
+    breakdownTask(t.trim());
   };
 
-  const handlePrev = () => {
-    if (activeStepIdx > 0) {
-      setActiveStepIdx((prev) => prev - 1);
-    }
+  const toggleStepDone = (idx) => {
+    setCompletedSteps((prev) => ({
+      ...prev,
+      [idx]: !prev[idx],
+    }));
   };
-
-  const currentStep = steps[activeStepIdx];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>✕</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle} numberOfLines={1}>{topic.title}</Text>
-          <Text style={styles.headerSubtitle}>
-            Step {activeStepIdx + 1} of {steps.length}
-          </Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>AI Task Breakdown</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      {/* STEP CONTENT CONTAINER */}
-      {currentStep ? (
-        <View style={styles.stepContainer}>
-          <View style={styles.stepCard}>
-            <Text style={styles.stepEmoji}>{currentStep.emoji}</Text>
-            <Text style={styles.stepTitle}>{currentStep.title}</Text>
-            <Text style={styles.stepDesc}>{currentStep.desc}</Text>
-          </View>
-
-          {/* PROGRESS NAVIGATION */}
-          <View style={styles.navRow}>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Input Card */}
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>WHAT TASK WOULD YOU LIKE TO BREAK DOWN?</Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. Brushing teeth, packing school bag..."
+              placeholderTextColor="#94A3B8"
+              value={taskInput}
+              onChangeText={setTaskInput}
+            />
             <TouchableOpacity
-              style={[styles.navBtn, styles.navBtnPrev, activeStepIdx === 0 && styles.navBtnDisabled]}
-              onPress={handlePrev}
-              disabled={activeStepIdx === 0}
+              style={styles.breakdownBtn}
+              onPress={() => handleBreakdown()}
+              activeOpacity={0.85}
             >
-              <Text style={styles.navBtnTextPrev}>‹ Back</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.navBtn, styles.navBtnNext]} onPress={handleNext}>
-              <Text style={styles.navBtnTextNext}>
-                {activeStepIdx === steps.length - 1 ? 'Finish ✓' : 'Next ›'}
-              </Text>
+              <Text style={styles.breakdownBtnText}>Break Down</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Quick task pills */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickPillsRow}>
+            {sampleTasks.map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={styles.quickPill}
+                onPress={() => {
+                  setTaskInput(t);
+                  handleBreakdown(t);
+                }}
+              >
+                <Text style={styles.quickPillText}>+ {t}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
-      ) : null}
+
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text style={styles.loadingText}>AI is generating bite-sized micro-steps...</Text>
+          </View>
+        ) : brokenDownSteps.length > 0 ? (
+          <View style={styles.resultsContainer}>
+            <Text style={styles.sectionTitle}>VISUAL STEP-BY-STEP GUIDE</Text>
+            {brokenDownSteps.map((step, idx) => {
+              const isDone = !!completedSteps[idx];
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.stepCard, isDone && styles.stepCardDone]}
+                  onPress={() => toggleStepDone(idx)}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.stepNumberBadge, isDone && styles.stepNumberBadgeDone]}>
+                    <Text style={styles.stepNumberText}>{isDone ? '✓' : step.step_number}</Text>
+                  </View>
+                  <View style={styles.stepTextCol}>
+                    <Text style={[styles.stepTitle, isDone && styles.stepTitleDone]}>
+                      {step.title}
+                    </Text>
+                    <Text style={styles.stepInstruction}>{step.instruction}</Text>
+                    {step.duration_sec ? (
+                      <Text style={styles.stepDuration}>⏱️ ~{step.duration_sec} seconds</Text>
+                    ) : null}
+                  </View>
+                  <Text style={styles.stepIcon}>{step.icon || '⭐'}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 16,
-    color: '#64748B',
-    fontWeight: '900',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    maxWidth: 200,
-    fontSize: 15,
-    fontWeight: '950',
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  stepContainer: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepCard: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    padding: 32,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
-    marginBottom: 40,
-  },
-  stepEmoji: {
-    fontSize: 90,
-    marginBottom: 20,
-  },
-  stepTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
+  },
+  content: {
+    padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  inputCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    padding: 18,
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 0.8,
     marginBottom: 10,
   },
-  stepDesc: {
-    fontSize: 13,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  navRow: {
+  inputRow: {
     flexDirection: 'row',
-    width: '100%',
-    maxWidth: 400,
-    gap: 16,
+    gap: 10,
+    marginBottom: 12,
   },
-  navBtn: {
+  textInput: {
     flex: 1,
-    paddingVertical: 14,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  breakdownBtn: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navBtnPrev: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  navBtnNext: {
-    backgroundColor: '#2563EB',
-  },
-  navBtnDisabled: {
-    opacity: 0.5,
-  },
-  navBtnTextPrev: {
-    color: '#475569',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  navBtnTextNext: {
+  breakdownBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
+  },
+  quickPillsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickPill: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  quickPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  loadingBox: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  resultsContainer: {
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  stepCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    padding: 16,
+    gap: 14,
+  },
+  stepCardDone: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  stepNumberBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumberBadgeDone: {
+    backgroundColor: '#10B981',
+  },
+  stepNumberText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#2563EB',
+  },
+  stepTextCol: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  stepTitleDone: {
+    color: '#047857',
+    textDecorationLine: 'line-through',
+  },
+  stepInstruction: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  stepDuration: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  stepIcon: {
+    fontSize: 26,
   },
 });

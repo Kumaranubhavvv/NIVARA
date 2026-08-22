@@ -16,9 +16,11 @@ class EmergencyContact(Base):
     phone_number = Column(String, nullable=False)
     email = Column(String, nullable=True)
     priority_order = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
     notify_via_sms = Column(Boolean, default=True)
     notify_via_call = Column(Boolean, default=True)
     notify_via_push = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="emergency_contacts")

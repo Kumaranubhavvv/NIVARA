@@ -25,7 +25,7 @@ else:
 engine = create_engine(
     db_url, connect_args=connect_args
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
 Base = declarative_base()
 
@@ -36,23 +36,28 @@ def get_db():
     finally:
         db.close()
 
-# MongoDB Lifecycle helpers
-from app.infrastructure.mongodb.client import mongo_manager
 
-def connect_mongodb():
-    mongo_manager.connect()
+def sync_database_schema(target_engine=None):
+    """Automatically add missing columns to existing SQLite tables when models evolve."""
+    if target_engine is None:
+        target_engine = engine
+    from sqlalchemy import inspect, text
+    inspector = inspect(target_engine)
+    with target_engine.begin() as conn:
+        for table_name, table in Base.metadata.tables.items():
+            if inspector.has_table(table_name):
+                existing_cols = {col["name"] for col in inspector.get_columns(table_name)}
+                for col in table.columns:
+                    if col.name not in existing_cols:
+                        col_type = col.type.compile(target_engine.dialect)
+                        default_val = None
+                        if col.default is not None and hasattr(col.default, 'arg') and not callable(col.default.arg):
+                            default_val = col.default.arg
+                            if isinstance(default_val, bool):
+                                default_val = 1 if default_val else 0
+                            elif isinstance(default_val, str):
+                                default_val = f"'{default_val}'"
+                        default_clause = f" DEFAULT {default_val}" if default_val is not None else ""
+                        sql = f"ALTER TABLE {table_name} ADD COLUMN {col.name} {col_type}{default_clause}"
+                        conn.execute(text(sql))
 
-def close_mongodb():
-    mongo_manager.close()
-
-async def check_mongo_health() -> bool:
-    try:
-        if mongo_manager.client:
-            await mongo_manager.client.admin.command('ping')
-            return True
-        elif mongo_manager.sync_client:
-            mongo_manager.sync_client.admin.command('ping')
-            return True
-        return False
-    except Exception:
-        return False

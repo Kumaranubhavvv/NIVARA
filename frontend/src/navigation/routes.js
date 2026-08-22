@@ -6,7 +6,7 @@ export const ROUTES = {
   REGISTER: 'Register',
   FORGOT_PASSWORD: 'ForgotPassword',
 
-  // Home & Main Tabs
+  // Home & Main Portals
   HOME: 'Home',
   NOTIFICATIONS: 'Notifications',
   MAIN_TABS: 'MainTabs',
@@ -28,13 +28,29 @@ export const ROUTES = {
   DEVICE_STATUS: 'DeviceStatus',
 
   MAIN_TABS: 'MainTabs',
-  COMMUNITY: 'Community',
-  LEARNING: 'Learning',
-  COMMUNICATION: 'Communication',
-  SENSORY: 'Sensory',
+  COMMUNITY: 'CommunityTab',
+  COMMUNICATION: 'CommunicationTab',
+  LEARNING: 'LearningTab',
+  SENSORY: 'SensoryTab',
+  SAFETY: 'SafetyTab',
+
+  // Communication Screens
+  AAC: 'AAC',
+  COMMUNICATION_HOME: 'CommunicationHome',
+  EMOTION: 'Emotion',
+  QUICK_COMMUNICATION: 'QuickCommunication',
+  COMMUNICATION_HISTORY: 'CommunicationHistory',
+
+  // Learning Screens
+  LEARNING_HOME: 'LearningHome',
+  ROUTINE: 'Routine',
+  ROUTINE_DETAILS: 'RoutineDetails',
+  TASK_DETAILS: 'TaskDetails',
+  LEARNING_TOPICS: 'LearningTopics',
+  TUTOR: 'Tutor',
+  REMINDERS: 'Reminders',
 
   // Safety & Caregiver
-  SAFETY: 'Safety',
   SAFETY_HOME: 'SafetyHome',
   LIVE_LOCATION: 'LiveLocation',
   SAFE_ZONES: 'SafeZones',

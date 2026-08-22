@@ -121,13 +121,13 @@ export default function LiveLocationScreen({ navigation }) {
   };
 
   const navItems = [
-    { id: 'DASHBOARD', label: 'Dashboard', icon: '⊞' },
-    { id: 'LIVE_LOCATION', label: 'Live Location', icon: '📍' },
-    { id: 'HISTORY', label: 'History', icon: '🕒' },
+    { id: 'HOME', label: 'NIVARA Home', icon: '🏠' },
+    { id: 'COMMUNITY', label: 'Community Portal', icon: '👥' },
+    { id: 'LIVE_LOCATION', label: 'Live Location GPS', icon: '📍' },
     { id: 'SAFE_ZONES', label: 'Safe Zones', icon: '🛡️' },
-    { id: 'WEARABLE', label: 'Wearable Device', icon: '⌚' },
-    { id: 'SAFETY_EVENTS', label: 'Safety Events', icon: '⚠️' },
-    { id: 'EMERGENCY_CONTACTS', label: 'Emergency Contacts', icon: '👥' },
+    { id: 'WEARABLE', label: 'GPS Smartband', icon: '⌚' },
+    { id: 'EMERGENCY_CONTACTS', label: 'Emergency Contacts', icon: '📞' },
+    { id: 'DASHBOARD', label: 'Safety Overview', icon: '⊞' },
   ];
 
   const bottomNavItems = [
@@ -136,8 +136,18 @@ export default function LiveLocationScreen({ navigation }) {
   ];
 
   const handleNavClick = (itemId) => {
-    if (itemId === 'LIVE_LOCATION') {
+    if (itemId === 'HOME') {
+      navigation.navigate('Home');
+    } else if (itemId === 'COMMUNITY') {
+      navigation.navigate('CommunityTab');
+    } else if (itemId === 'LIVE_LOCATION') {
       setActiveNav('LIVE_LOCATION');
+    } else if (itemId === 'SAFE_ZONES') {
+      navigation.navigate('SafeZones');
+    } else if (itemId === 'WEARABLE') {
+      navigation.navigate('GPSBand');
+    } else if (itemId === 'EMERGENCY_CONTACTS') {
+      navigation.navigate('EmergencyContacts');
     } else {
       navigation.navigate('CaregiverDashboard');
     }
@@ -219,7 +229,20 @@ export default function LiveLocationScreen({ navigation }) {
           {/* Top Header Bar */}
           <View style={styles.topHeader}>
             <View style={styles.headerLeftCol}>
-              <Text style={styles.headerLeftTitle}>Live Location</Text>
+              <TouchableOpacity
+                style={styles.backHomeBtn}
+                onPress={() => navigation.navigate('Home')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.backHomeBtnText}>← 🏠 Home</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.communityJumpBtn}
+                onPress={() => navigation.navigate('CommunityTab')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.communityJumpBtnText}>👥 Community</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Center: Live Tracking Red Pulsing Pill */}
@@ -1274,5 +1297,36 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontSize: 13,
     fontWeight: '700',
+  },
+  headerLeftCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backHomeBtn: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  backHomeBtnText: {
+    color: '#1E40AF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  communityJumpBtn: {
+    backgroundColor: '#F5F3FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+  },
+  communityJumpBtnText: {
+    color: '#6D28D9',
+    fontSize: 12,
+    fontWeight: '800',
   },
 });

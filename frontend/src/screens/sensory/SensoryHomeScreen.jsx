@@ -1,103 +1,152 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   SafeAreaView,
+  Dimensions,
+  Platform,
 } from 'react-native';
-import { ROUTES } from '../../navigation/routes';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isDesktop = Platform.OS === 'web' ? SCREEN_WIDTH >= 1024 : SCREEN_WIDTH >= 768;
 
 export default function SensoryHomeScreen({ navigation }) {
+  const [activeTab, setActiveTab] = useState('TOOLS'); // 'TOOLS' | 'SOUNDS' | 'DE_ESCALATION'
+  const [noiseLevel, setNoiseLevel] = useState(42); // dB
+  const [isCalmingActive, setIsCalmingActive] = useState(false);
+
+  const calmingSounds = [
+    { id: '1', title: 'Gentle Ocean Waves', icon: '🌊', category: 'Nature' },
+    { id: '2', title: 'Pink Noise Breeze', icon: '💨', category: 'White Noise' },
+    { id: '3', title: 'Soft Raindrops', icon: '🌧️', category: 'Rain' },
+    { id: '4', title: 'Deep Forest Echoes', icon: '🌲', category: 'Ambient' },
+  ];
+
+  const deEscalationStrategies = [
+    {
+      id: 'strat-1',
+      title: '5-4-3-2-1 Grounding Method',
+      icon: '👁️',
+      steps: [
+        '5 things you can see',
+        '4 things you can physically touch',
+        '3 things you hear around you',
+        '2 things you can smell',
+        '1 deep breath in and slow exhale',
+      ],
+    },
+    {
+      id: 'strat-2',
+      title: 'Deep Pressure Touch Protocol',
+      icon: '🫂',
+      steps: [
+        'Apply weighted blanket across shoulders',
+        'Firm, slow hugs with steady count',
+        'Dim ambient room lights to 20%',
+        'Play low-tempo calming frequency',
+      ],
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+    <SafeAreaView style={styles.safeArea}>
+      {/* Navigation Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.backIcon}>‹</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>‹ Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Sensory Hub</Text>
-          <Text style={styles.headerSubtitle}>Environment monitoring and adjustments</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Sensory Sanctuary & Support</Text>
+        <TouchableOpacity
+          style={styles.sosQuickBtn}
+          onPress={() => navigation.navigate('Emergency')}
+        >
+          <Text style={styles.sosQuickText}>🚨 SOS</Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* CURRENT STATUS CARD */}
-        <View style={styles.statusCard}>
-          <Text style={styles.statusLabel}>ENVIRONMENT STATUS</Text>
-          <Text style={styles.statusVal}>Calm & Comfortable</Text>
-          <Text style={styles.statusSub}>Noise levels are within safety limits (45 dB)</Text>
-        </View>
-
-        {/* METRICS ROW */}
-        <View style={styles.metricsRow}>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>SOUND LEVEL</Text>
-            <Text style={styles.metricVal}>🔊 45 dB</Text>
-            <Text style={styles.metricStatus}>Quiet</Text>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Banner */}
+        <View style={styles.banner}>
+          <View style={styles.bannerIconBox}>
+            <Text style={styles.bannerIcon}>🎧</Text>
           </View>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>CROWD ESTIMATE</Text>
-            <Text style={styles.metricVal}>👥 Low</Text>
-            <Text style={styles.metricStatus}>Comfortable</Text>
+          <View style={styles.bannerTextCol}>
+            <Text style={styles.bannerTitle}>Auditory & Visual Comfort Center</Text>
+            <Text style={styles.bannerSub}>
+              Tools and de-escalation strategies designed for sensory regulation and distress relief.
+            </Text>
           </View>
         </View>
 
-        {/* PORTALS LIST */}
-        <Text style={styles.sectionHeader}>PORTALS</Text>
-        <View style={styles.portalsList}>
-          {/* Environment Monitor */}
-          <TouchableOpacity
-            style={styles.portalCard}
-            onPress={() => navigation.navigate(ROUTES.ENVIRONMENT)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.portalIcon}>📊</Text>
-            <View style={styles.portalText}>
-              <Text style={styles.portalTitle}>Environment Monitor</Text>
-              <Text style={styles.portalDesc}>Real-time logs of decibels and brightness levels</Text>
+        {/* Live Noise Meter Widget */}
+        <View style={styles.noiseWidgetCard}>
+          <View style={styles.widgetHeader}>
+            <Text style={styles.widgetTitle}>🔊 Live Room Noise Monitor</Text>
+            <View style={[styles.noisePill, noiseLevel < 60 ? styles.noisePillSafe : styles.noisePillWarn]}>
+              <Text style={[styles.noisePillText, noiseLevel < 60 ? styles.noiseTextSafe : styles.noiseTextWarn]}>
+                {noiseLevel < 60 ? 'Optimal Range (Quiet)' : 'High Noise Warning'}
+              </Text>
             </View>
-            <Text style={styles.portalArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* Preferences */}
-          <TouchableOpacity
-            style={styles.portalCard}
-            onPress={() => navigation.navigate(ROUTES.SENSORY_PREFERENCES)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.portalIcon}>⚙️</Text>
-            <View style={styles.portalText}>
-              <Text style={styles.portalTitle}>Sensory Preferences</Text>
-              <Text style={styles.portalDesc}>Configure volume limits and visual alerts</Text>
-            </View>
-            <Text style={styles.portalArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* Social Cue decoder cards */}
-          <TouchableOpacity
-            style={styles.portalCard}
-            onPress={() => navigation.navigate(ROUTES.SOCIAL_CUE)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.portalIcon}>🎭</Text>
-            <View style={styles.portalText}>
-              <Text style={styles.portalTitle}>Expression Decoder</Text>
-              <Text style={styles.portalDesc}>Practice decoding expressions with flashcards</Text>
-            </View>
-            <Text style={styles.portalArrow}>›</Text>
-          </TouchableOpacity>
+          </View>
+          <View style={styles.decibelGauge}>
+            <Text style={styles.decibelNumber}>{noiseLevel}</Text>
+            <Text style={styles.decibelUnit}>dB</Text>
+          </View>
+          <Text style={styles.noiseAdvice}>
+            Current environment sound pressure is comfortable. Keep noise cancelling headphones handy if visiting outdoor venues.
+          </Text>
         </View>
+
+        {/* Calming Audio Player */}
+        <Text style={styles.sectionTitle}>CALMING AMBIENT AUDIO</Text>
+        <View style={styles.soundsGrid}>
+          {calmingSounds.map((sound) => (
+            <TouchableOpacity
+              key={sound.id}
+              style={styles.soundCard}
+              onPress={() => setIsCalmingActive(!isCalmingActive)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.soundIcon}>{sound.icon}</Text>
+              <View style={styles.soundInfo}>
+                <Text style={styles.soundTitle}>{sound.title}</Text>
+                <Text style={styles.soundCategory}>{sound.category}</Text>
+              </View>
+              <Text style={styles.playBtn}>{isCalmingActive ? '⏸️' : '▶️'}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* De-escalation Protocol */}
+        <Text style={styles.sectionTitle}>DE-ESCALATION STRATEGIES</Text>
+        {deEscalationStrategies.map((strat) => (
+          <View key={strat.id} style={styles.stratCard}>
+            <View style={styles.stratHeader}>
+              <Text style={styles.stratIcon}>{strat.icon}</Text>
+              <Text style={styles.stratTitle}>{strat.title}</Text>
+            </View>
+            <View style={styles.stepsList}>
+              {strat.steps.map((step, idx) => (
+                <View key={idx} style={styles.stepRow}>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>{idx + 1}</Text>
+                  </View>
+                  <Text style={styles.stepText}>{step}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
@@ -109,129 +158,226 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#E2E8F0',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
+  sosQuickBtn: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  sosQuickText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
     fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
     padding: 20,
+    maxWidth: 1100,
+    width: '100%',
+    alignSelf: 'center',
   },
-  statusCard: {
-    backgroundColor: '#ECFDF5',
-    borderRadius: 22,
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
+    borderRadius: 20,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
     marginBottom: 20,
   },
-  statusLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#059669',
-    letterSpacing: 0.5,
-    marginBottom: 4,
+  bannerIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  statusVal: {
+  bannerIcon: {
+    fontSize: 26,
+  },
+  bannerTextCol: {
+    flex: 1,
+  },
+  bannerTitle: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '900',
-    color: '#065F46',
   },
-  statusSub: {
-    fontSize: 11,
-    color: '#047857',
+  bannerSub: {
+    color: '#DBEAFE',
+    fontSize: 12,
     marginTop: 4,
+    lineHeight: 16,
   },
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  metricBox: {
-    flex: 1,
+  noiseWidgetCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    marginBottom: 24,
   },
-  metricLabel: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#64748B',
-    marginBottom: 4,
+  widgetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  metricVal: {
-    fontSize: 16,
-    fontWeight: '900',
+  widgetTitle: {
+    fontSize: 15,
+    fontWeight: '800',
     color: '#0F172A',
   },
-  metricStatus: {
-    fontSize: 10,
-    color: '#059669',
-    fontWeight: '700',
-    marginTop: 4,
+  noisePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
-  sectionHeader: {
+  noisePillSafe: {
+    backgroundColor: '#ECFDF5',
+  },
+  noisePillWarn: {
+    backgroundColor: '#FEF2F2',
+  },
+  noisePillText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  noiseTextSafe: {
+    color: '#059669',
+  },
+  noiseTextWarn: {
+    color: '#DC2626',
+  },
+  decibelGauge: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginVertical: 14,
+  },
+  decibelNumber: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#2563EB',
+  },
+  decibelUnit: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#64748B',
+    marginLeft: 6,
+  },
+  noiseAdvice: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  sectionTitle: {
     fontSize: 12,
     fontWeight: '900',
     color: '#64748B',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     marginBottom: 12,
   },
-  portalsList: {
+  soundsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
+    marginBottom: 24,
   },
-  portalCard: {
+  soundCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    gap: 14,
-  },
-  portalIcon: {
-    fontSize: 24,
-  },
-  portalText: {
+    minWidth: isDesktop ? '48%' : '100%',
     flex: 1,
   },
-  portalTitle: {
-    fontSize: 13,
-    fontWeight: '850',
+  soundIcon: {
+    fontSize: 26,
+    marginRight: 12,
+  },
+  soundInfo: {
+    flex: 1,
+  },
+  soundTitle: {
+    fontSize: 14,
+    fontWeight: '800',
     color: '#0F172A',
   },
-  portalDesc: {
+  soundCategory: {
     fontSize: 11,
     color: '#64748B',
     marginTop: 2,
   },
-  portalArrow: {
-    fontSize: 24,
-    color: '#94A3B8',
-    fontWeight: '300',
+  playBtn: {
+    fontSize: 20,
+  },
+  stratCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 14,
+  },
+  stratHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  stratIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  stratTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  stepsList: {
+    gap: 8,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  stepBadgeText: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  stepText: {
+    fontSize: 13,
+    color: '#334155',
+    flex: 1,
   },
 });

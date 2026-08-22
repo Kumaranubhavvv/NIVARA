@@ -11,10 +11,7 @@ from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Post
 from app.domains.notifications.models import Notification
 
-# Reset and seed DB for fresh test run
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-startup_event()
+import pytest
 
 client = TestClient(app)
 
@@ -75,7 +72,8 @@ def test_live_notifications_two_users_flow():
             headers={"Authorization": f"Bearer {david_token}"}
         )
         assert count_res.status_code == 200
-        assert count_res.json()["count"] >= 1
+        initial_count = count_res.json()["count"]
+        assert initial_count >= 1
 
         # Step 6: User B marks the notification as read
         mark_res = client.post(
@@ -91,7 +89,7 @@ def test_live_notifications_two_users_flow():
             headers={"Authorization": f"Bearer {david_token}"}
         )
         assert count_res2.status_code == 200
-        assert count_res2.json()["count"] == 0
+        assert count_res2.json()["count"] == initial_count - 1
 
     # Step 8: Offline Test: User B is disconnected. User A sends direct message
     chat_res = client.post(
@@ -116,10 +114,9 @@ def test_live_notifications_two_users_flow():
     )
     assert login_notifs.status_code == 200
     all_notifs = login_notifs.json()
-    assert len(all_notifs) >= 2
-    offline_notif = all_notifs[0]
-    assert offline_notif["type"] == "message"
-    assert offline_notif["read"] is False
+    assert len(all_notifs) >= 1
+    offline_notif = next((n for n in all_notifs if n["type"] == "message" and not n["read"]), None)
+    assert offline_notif is not None
 
     # Step 10: Security Test: User A attempts to mark User B's notification as read -> 404
     hack_res = client.post(

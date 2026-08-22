@@ -9,10 +9,6 @@ from fastapi.testclient import TestClient
 from app.main import app, startup_event
 from app.core.database import Base, engine
 
-# Ensure tables and seed data exist
-Base.metadata.create_all(bind=engine)
-startup_event()
-
 client = TestClient(app)
 
 def test_registration_validation_and_creation():

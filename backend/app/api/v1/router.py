@@ -21,15 +21,21 @@ from app.api.v1.health.routes import router as health_router
 
 from app.routers.safety import router as safety_router
 from app.websocket.location_socket import router as location_ws_router
+from app.api.v1.communication.router import router as communication_router
+from app.api.v1.learning.router import router as learning_router
+from app.domains.safety.caregiver_dashboard_router import router as caregiver_dashboard_router
 
 router = APIRouter()
 
 router.include_router(dashboard_router)
+router.include_router(caregiver_dashboard_router)
 router.include_router(auth_router)
 router.include_router(users_router)
 router.include_router(core_notifications_router)
 router.include_router(health_router)
 router.include_router(caregivers_router)
+router.include_router(communication_router)
+router.include_router(learning_router)
 router.include_router(media_router)
 router.include_router(chat_router)
 router.include_router(group_router)

@@ -3,8 +3,11 @@ from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from app.core.database import Base
 
+from sqlalchemy.orm import relationship
+
 class Caregiver(Base):
     __tablename__ = "caregivers"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=lambda: f"cg-{uuid.uuid4().hex[:8]}")
     user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
@@ -15,6 +18,8 @@ class Caregiver(Base):
     is_online = Column(Boolean, default=False)
     last_seen = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="caregiver_profile")
 
 class CaregiverBlock(Base):
     __tablename__ = "caregiver_blocks"

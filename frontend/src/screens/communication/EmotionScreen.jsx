@@ -3,117 +3,106 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  FlatList,
+  TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-
-const EMOTIONS = [
-  { id: 'e1', label: 'Happy', emoji: '😊', desc: 'I feel good and cheerful', color: '#ECFDF5', border: '#A7F3D0', text: '#065F46' },
-  { id: 'e2', label: 'Sad', emoji: '😢', desc: 'I feel a bit down or lonely', color: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF' },
-  { id: 'e3', label: 'Angry', emoji: '😠', desc: 'Something has upset me', color: '#FEF2F2', border: '#FECACA', text: '#991B1B' },
-  { id: 'e4', label: 'Anxious', emoji: '😰', desc: 'I feel nervous or worried', color: '#FFF7ED', border: '#FFEDD5', text: '#C2410C' },
-  { id: 'e5', label: 'Excited', emoji: '🤩', desc: 'I have high energy and joy', color: '#FEF3C7', border: '#FDE68A', text: '#92400E' },
-  { id: 'e6', label: 'Tired', emoji: '🥱', desc: 'I am sleepy or out of energy', color: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6' },
-];
+import { useCommunication } from '../../hooks/useCommunication';
+import EmotionSelector from '../../components/communication/EmotionSelector';
 
 export default function EmotionScreen({ navigation }) {
-  const [selectedEmotion, setSelectedEmotion] = useState(null);
-  const [moodLogs, setMoodLogs] = useState([
-    { id: 'l1', emotion: 'Happy 😊', time: 'Today, 08:30 AM', reason: 'Had breakfast' },
-    { id: 'l2', emotion: 'Tired 🥱', time: 'Yesterday, 09:15 PM', reason: 'Bedtime routine complete' },
-  ]);
+  const {
+    currentEmotion,
+    checkinEmotion,
+    emotionRecommendations,
+    sensoryTip,
+    speakSentence,
+    speaking,
+  } = useCommunication();
 
-  const handleSelectEmotion = (emo) => {
-    setSelectedEmotion(emo);
-  };
+  const [intensity, setIntensity] = useState(5);
 
-  const handleLogReason = (reason) => {
-    if (!selectedEmotion) return;
-    const newLog = {
-      id: `log-${Date.now()}`,
-      emotion: `${selectedEmotion.label} ${selectedEmotion.emoji}`,
-      time: 'Just now',
-      reason: reason,
-    };
-    setMoodLogs((prev) => [newLog, ...prev]);
-    setSelectedEmotion(null);
+  const handleSelectEmotion = (emId) => {
+    checkinEmotion(emId, intensity);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Mood Check-In</Text>
-          <Text style={styles.headerSubtitle}>Identify and express current feelings</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Emotion Check-in</Text>
+        <View style={{ width: 50 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* EMOTION SELECTION GRID */}
-        {!selectedEmotion ? (
-          <View>
-            <Text style={styles.sectionTitle}>How do you feel right now?</Text>
-            <View style={styles.grid}>
-              {EMOTIONS.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[styles.emoCard, { backgroundColor: item.color, borderColor: item.border }]}
-                  onPress={() => handleSelectEmotion(item)}
-                  activeOpacity={0.8}
+        <EmotionSelector
+          selectedEmotion={currentEmotion}
+          onSelectEmotion={handleSelectEmotion}
+        />
+
+        {/* Intensity Level Selector */}
+        <View style={styles.intensityCard}>
+          <Text style={styles.intensityTitle}>HOW STRONG IS THIS FEELING? ({intensity}/10)</Text>
+          <View style={styles.intensityButtonsRow}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              <TouchableOpacity
+                key={num}
+                style={[
+                  styles.intensityNumBtn,
+                  intensity === num && styles.intensityNumBtnActive,
+                ]}
+                onPress={() => {
+                  setIntensity(num);
+                  if (currentEmotion) checkinEmotion(currentEmotion, num);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.intensityNumText,
+                    intensity === num && styles.intensityNumTextActive,
+                  ]}
                 >
-                  <Text style={styles.emoEmoji}>{item.emoji}</Text>
-                  <Text style={[styles.emoLabel, { color: item.text }]}>{item.label}</Text>
-                </TouchableOpacity>
-              ))}
+                  {num}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Sensory Grounding Tip */}
+        {sensoryTip ? (
+          <View style={styles.tipCard}>
+            <Text style={styles.tipIcon}>💡</Text>
+            <View style={styles.tipTextCol}>
+              <Text style={styles.tipTitle}>Sensory Support Tip</Text>
+              <Text style={styles.tipText}>{sensoryTip}</Text>
             </View>
           </View>
-        ) : (
-          /* CONTEXT REASON CHECK-IN FLOW */
-          <View style={styles.reasonCard}>
-            <Text style={styles.reasonEmoji}>{selectedEmotion.emoji}</Text>
-            <Text style={styles.reasonTitle}>I feel {selectedEmotion.label}</Text>
-            <Text style={styles.reasonSubtitle}>{selectedEmotion.desc}</Text>
+        ) : null}
 
-            <Text style={styles.reasonQuestion}>Why do you feel this way?</Text>
-            <View style={styles.reasonButtons}>
-              {['School 🏫', 'Home 🏠', 'Hungry 🍎', 'Sleepy 🛌', 'Noise 🔊', 'Play 🧸'].map((reason) => (
-                <TouchableOpacity
-                  key={reason}
-                  style={styles.reasonOptionBtn}
-                  onPress={() => handleLogReason(reason)}
-                >
-                  <Text style={styles.reasonOptionText}>{reason}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity style={styles.cancelReasonBtn} onPress={() => setSelectedEmotion(null)}>
-              <Text style={styles.cancelReasonText}>Go Back</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* RECENT MOOD HISTORY LOG */}
-        <Text style={styles.sectionTitle}>Mood History</Text>
-        <View style={styles.logsCard}>
-          {moodLogs.map((log) => (
-            <View key={log.id} style={styles.logRow}>
-              <View style={styles.logBadge}>
-                <Text style={styles.logBadgeText}>{log.emotion}</Text>
-              </View>
-              <View style={styles.logBody}>
-                <Text style={styles.logReason}>Reason: {log.reason}</Text>
-                <Text style={styles.logTime}>{log.time}</Text>
-              </View>
-            </View>
-          ))}
+        {/* Recommended Phrases */}
+        <Text style={styles.sectionTitle}>RECOMMENDED PHRASES TO SPEAK</Text>
+        <View style={styles.phraseList}>
+          {emotionRecommendations.length === 0 ? (
+            <Text style={styles.emptyPrompt}>Select an emotion above to see personalized phrases.</Text>
+          ) : (
+            emotionRecommendations.map((phrase, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={styles.phraseCard}
+                onPress={() => speakSentence(phrase)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.phraseText}>"{phrase}"</Text>
+                <View style={styles.speakPill}>
+                  <Text style={styles.speakPillIcon}>🗣️</Text>
+                  <Text style={styles.speakPillText}>Speak</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -121,182 +110,155 @@ export default function EmotionScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
   },
   content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  sectionTitle: {
-    fontSize: 13,
+  intensityCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    padding: 16,
+    marginVertical: 12,
+  },
+  intensityTitle: {
+    fontSize: 11,
     fontWeight: '900',
     color: '#64748B',
     letterSpacing: 0.8,
-    marginBottom: 14,
-    marginTop: 10,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
-  },
-  emoCard: {
-    flex: 1,
-    minWidth: '45%',
-    aspectRatio: 1.15,
-    borderRadius: 20,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 12,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  emoEmoji: {
-    fontSize: 44,
-    marginBottom: 8,
-  },
-  emoLabel: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  reasonCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  reasonEmoji: {
-    fontSize: 64,
     marginBottom: 10,
   },
-  reasonTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#0F172A',
-  },
-  reasonSubtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-    marginBottom: 20,
-  },
-  reasonQuestion: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#334155',
-    marginBottom: 12,
-    alignSelf: 'flex-start',
-  },
-  reasonButtons: {
+  intensityButtonsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
   },
-  reasonOptionBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
+  intensityNumBtn: {
+    width: 28,
+    height: 32,
+    borderRadius: 8,
     backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  reasonOptionText: {
+  intensityNumBtnActive: {
+    backgroundColor: '#2563EB',
+  },
+  intensityNumText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#334155',
+    fontWeight: '800',
+    color: '#475569',
   },
-  cancelReasonBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  intensityNumTextActive: {
+    color: '#FFFFFF',
   },
-  cancelReasonText: {
-    fontSize: 12,
-    color: '#64748B',
-    fontWeight: '700',
-  },
-  logsCard: {
-    backgroundColor: '#FFFFFF',
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#A7F3D0',
+    marginVertical: 10,
     gap: 12,
   },
-  logRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#F1F5F9',
-    paddingBottom: 10,
-    gap: 12,
+  tipIcon: {
+    fontSize: 24,
   },
-  logBadge: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  logBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#334155',
-  },
-  logBody: {
+  tipTextCol: {
     flex: 1,
   },
-  logReason: {
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  tipText: {
     fontSize: 12,
+    color: '#047857',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 1,
+    marginTop: 14,
+    marginBottom: 10,
+  },
+  phraseList: {
+    gap: 10,
+  },
+  emptyPrompt: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    paddingVertical: 12,
+  },
+  phraseCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    padding: 16,
+    gap: 12,
+  },
+  phraseText: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#0F172A',
+    flex: 1,
   },
-  logTime: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 1,
+  speakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    gap: 4,
+  },
+  speakPillIcon: {
+    fontSize: 13,
+  },
+  speakPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2563EB',
   },
 });

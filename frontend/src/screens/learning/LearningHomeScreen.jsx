@@ -3,111 +3,141 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import { ROUTES } from '../../navigation/routes';
+import { useLearning } from '../../hooks/useLearning';
+import RoutineCard from '../../components/learning/RoutineCard';
 
 export default function LearningHomeScreen({ navigation }) {
+  const { routines, toggleStep, reminders, topics } = useLearning();
+
+  const quickFeatures = [
+    {
+      id: 'routines',
+      title: 'Daily Routines',
+      sub: 'Visual morning & bedtime schedules',
+      icon: '🌅',
+      color: '#3B82F6',
+      bg: '#EFF6FF',
+      route: 'Routine',
+    },
+    {
+      id: 'task_breakdown',
+      title: 'AI Task Breakdown',
+      sub: 'Turn chores into bite-sized micro-steps',
+      icon: '🧩',
+      color: '#F59E0B',
+      bg: '#FFFBEB',
+      route: 'TaskDetails',
+    },
+    {
+      id: 'tutor',
+      title: 'AI Tutor Nivi',
+      sub: 'Patient learning companion & analogies',
+      icon: '🤖',
+      color: '#8B5CF6',
+      bg: '#F5F3FF',
+      route: 'Tutor',
+    },
+    {
+      id: 'topics',
+      title: 'Learning Topics',
+      sub: 'Social stories & everyday life skills',
+      icon: '📚',
+      color: '#10B981',
+      bg: '#ECFDF5',
+      route: 'LearningTopics',
+    },
+    {
+      id: 'reminders',
+      title: 'Reminders & Breaks',
+      sub: 'Hydration, sensory breaks & alerts',
+      icon: '⏰',
+      color: '#EC4899',
+      bg: '#FDF2F8',
+      route: 'Reminders',
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Routines & Tutor</Text>
-          <Text style={styles.headerSubtitle}>Visual schedules and learning stories</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerEmoji}>🎓</Text>
+          <Text style={styles.headerTitle}>Learning & Routines</Text>
         </View>
-        <View style={{ width: 38 }} />
+        <TouchableOpacity
+          style={styles.tutorHeaderBtn}
+          onPress={() => navigation.navigate('Tutor')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.tutorHeaderIcon}>🤖</Text>
+          <Text style={styles.tutorHeaderLabel}>Ask Nivi</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* STATS OVERVIEW CARD */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewTitle}>Today's Schedule Progress</Text>
-          <Text style={styles.overviewVal}>2 / 3 Routines Done</Text>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: '66%' }]} />
+        {/* Banner */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroTextCol}>
+            <Text style={styles.heroTitle}>Today's Focus & Growth 🌱</Text>
+            <Text style={styles.heroSub}>
+              Build consistent habits, master tasks step-by-step, and explore curious topics safely.
+            </Text>
           </View>
         </View>
 
-        {/* CORE PORTALS */}
-        <Text style={styles.sectionTitle}>LEARNING SECTIONS</Text>
-        <View style={styles.grid}>
-          {/* Visual Routines */}
-          <TouchableOpacity
-            style={[styles.portalCard, { borderLeftColor: '#2563EB' }]}
-            onPress={() => navigation.navigate(ROUTES.ROUTINE)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.portalIconCircleBlue}>
-              <Text style={styles.portalIcon}>📅</Text>
-            </View>
-            <View style={styles.portalTextCol}>
-              <Text style={styles.portalTitle}>Visual Routines</Text>
-              <Text style={styles.portalSub}>Hygiene, bedtime, and school checklists</Text>
-            </View>
-          </TouchableOpacity>
+        {/* Feature Grid */}
+        <Text style={styles.sectionTitle}>LEARNING & SKILLS TOOLS</Text>
+        <View style={styles.featureGrid}>
+          {quickFeatures.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[styles.featureCard, { borderLeftColor: item.color }]}
+              onPress={() => navigation.navigate(item.route)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: item.bg }]}>
+                <Text style={styles.featureIcon}>{item.icon}</Text>
+              </View>
+              <View style={styles.featureTextCol}>
+                <Text style={styles.featureTitle}>{item.title}</Text>
+                <Text style={styles.featureSub}>{item.sub}</Text>
+              </View>
+              <Text style={styles.arrowIcon}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          {/* AI Tutor Chat */}
-          <TouchableOpacity
-            style={[styles.portalCard, { borderLeftColor: '#8B5CF6' }]}
-            onPress={() => navigation.navigate(ROUTES.TUTOR)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.portalIconCirclePurple}>
-              <Text style={styles.portalIcon}>🦉</Text>
-            </View>
-            <View style={styles.portalTextCol}>
-              <Text style={styles.portalTitle}>Nivi the Tutor Owl</Text>
-              <Text style={styles.portalSub}>Interactive lessons and social stories chat</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Lesson Library */}
-          <TouchableOpacity
-            style={[styles.portalCard, { borderLeftColor: '#10B981' }]}
-            onPress={() => navigation.navigate(ROUTES.LEARNING_TOPICS)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.portalIconCircleGreen}>
-              <Text style={styles.portalIcon}>📚</Text>
-            </View>
-            <View style={styles.portalTextCol}>
-              <Text style={styles.portalTitle}>Social Stories Library</Text>
-              <Text style={styles.portalSub}>Browse customized modules & flashcards</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Reminders List */}
-          <TouchableOpacity
-            style={[styles.portalCard, { borderLeftColor: '#F59E0B' }]}
-            onPress={() => navigation.navigate(ROUTES.REMINDERS)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.portalIconCircleYellow}>
-              <Text style={styles.portalIcon}>⏰</Text>
-            </View>
-            <View style={styles.portalTextCol}>
-              <Text style={styles.portalTitle}>Reminders & Alerts</Text>
-              <Text style={styles.portalSub}>Visual alerts and transition notifications</Text>
-            </View>
+        {/* Active Today Routines */}
+        <View style={styles.routinesHeaderRow}>
+          <Text style={styles.sectionTitle}>ACTIVE VISUAL ROUTINES</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Routine')}>
+            <Text style={styles.viewAllText}>View All ›</Text>
           </TouchableOpacity>
         </View>
+
+        {routines.slice(0, 2).map((routine) => (
+          <RoutineCard
+            key={routine.id}
+            routine={routine}
+            onToggleStep={toggleStep}
+            onOpenDetails={() => navigation.navigate('RoutineDetails', { routineId: routine.id })}
+          />
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -115,143 +145,132 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
+  headerLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  headerEmoji: {
+    fontSize: 22,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
+  tutorHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F3FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    gap: 6,
+  },
+  tutorHeaderIcon: {
+    fontSize: 14,
+  },
+  tutorHeaderLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#7C3AED',
   },
   content: {
     padding: 20,
+    maxWidth: 720,
+    alignSelf: 'center',
+    width: '100%',
   },
-  overviewCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
+  heroCard: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: 22,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 24,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
+    borderColor: '#DBEAFE',
+    marginBottom: 20,
   },
-  overviewTitle: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: '#64748B',
-    letterSpacing: 0.5,
-    marginBottom: 6,
+  heroTextCol: {
+    width: '100%',
   },
-  overviewVal: {
+  heroTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#0F172A',
-    marginBottom: 12,
+    color: '#1E40AF',
   },
-  progressBarBg: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: '#EEF2F6',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: '#2563EB',
+  heroSub: {
+    fontSize: 13,
+    color: '#3B82F6',
+    marginTop: 4,
+    lineHeight: 18,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '900',
     color: '#64748B',
-    letterSpacing: 0.8,
-    marginBottom: 14,
+    letterSpacing: 1,
+    marginBottom: 12,
   },
-  grid: {
+  featureGrid: {
     gap: 12,
+    marginBottom: 24,
   },
-  portalCard: {
+  featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
     borderLeftWidth: 5,
+    padding: 16,
     gap: 14,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  portalIconCircleBlue: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
-  },
-  portalIconCirclePurple: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F5F3FF',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  portalIconCircleGreen: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#ECFDF5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  portalIconCircleYellow: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FEF3C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  portalIcon: {
+  featureIcon: {
     fontSize: 22,
   },
-  portalTextCol: {
+  featureTextCol: {
     flex: 1,
   },
-  portalTitle: {
-    fontSize: 14,
+  featureTitle: {
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
   },
-  portalSub: {
-    fontSize: 11,
+  featureSub: {
+    fontSize: 12,
     color: '#64748B',
     marginTop: 2,
+  },
+  arrowIcon: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  routinesHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2563EB',
   },
 });

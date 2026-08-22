@@ -1,404 +1,216 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  FlatList,
+  TouchableOpacity,
   SafeAreaView,
-  Dimensions,
 } from 'react-native';
-import { ROUTES } from '../../navigation/routes';
-
-const { width } = Dimensions.get('window');
-const GRID_COLUMNS = width > 768 ? 5 : 3;
-
-const VOCAB_DATA = [
-  // Needs
-  { id: '1', label: 'I want', emoji: '🙋‍♂️', category: 'Needs', color: '#EFF6FF', textColor: '#1E40AF' },
-  { id: '2', label: 'Help', emoji: '🆘', category: 'Needs', color: '#FEF2F2', textColor: '#991B1B' },
-  { id: '3', label: 'Drink', emoji: '🥛', category: 'Needs', color: '#EFF6FF', textColor: '#1E40AF' },
-  { id: '4', label: 'Eat', emoji: '🍎', category: 'Needs', color: '#FEF3C7', textColor: '#92400E' },
-  { id: '5', label: 'Toilet', emoji: '🚽', category: 'Needs', color: '#F0FDF4', textColor: '#166534' },
-  // Actions
-  { id: '6', label: 'Go', emoji: '🚶‍♂️', category: 'Actions', color: '#ECFDF5', textColor: '#065F46' },
-  { id: '7', label: 'Stop', emoji: '🛑', category: 'Actions', color: '#FEF2F2', textColor: '#991B1B' },
-  { id: '8', label: 'Sleep', emoji: '😴', category: 'Actions', color: '#F5F3FF', textColor: '#5B21B6' },
-  { id: '9', label: 'Play', emoji: '🧸', category: 'Actions', color: '#FEF3C7', textColor: '#92400E' },
-  { id: '10', label: 'Read', emoji: '📖', category: 'Actions', color: '#EFF6FF', textColor: '#1E40AF' },
-  // Feelings
-  { id: '11', label: 'Happy', emoji: '😊', category: 'Feelings', color: '#F0FDF4', textColor: '#166534' },
-  { id: '12', label: 'Sad', emoji: '😢', category: 'Feelings', color: '#EFF6FF', textColor: '#1E40AF' },
-  { id: '13', label: 'Angry', emoji: '😠', category: 'Feelings', color: '#FEF2F2', textColor: '#991B1B' },
-  { id: '14', label: 'Tired', emoji: '🥱', category: 'Feelings', color: '#F5F3FF', textColor: '#5B21B6' },
-  { id: '15', label: 'Scared', emoji: '😨', category: 'Feelings', color: '#FEF3C7', textColor: '#92400E' },
-  // Places
-  { id: '16', label: 'Home', emoji: '🏠', category: 'Places', color: '#F0FDF4', textColor: '#166534' },
-  { id: '17', label: 'School', emoji: '🏫', category: 'Places', color: '#EFF6FF', textColor: '#1E40AF' },
-  { id: '18', label: 'Park', emoji: '🌳', category: 'Places', color: '#ECFDF5', textColor: '#065F46' },
-  { id: '19', label: 'Therapy', emoji: '🏥', category: 'Places', color: '#F5F3FF', textColor: '#5B21B6' },
-  { id: '20', label: 'Shop', emoji: '🛒', category: 'Places', color: '#FEF3C7', textColor: '#92400E' },
-];
-
-const CATEGORIES = ['All', 'Needs', 'Actions', 'Feelings', 'Places'];
 
 export default function CommunicationScreen({ navigation }) {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [phrase, setPhrase] = useState([]);
-  const [speakingText, setSpeakingText] = useState('');
-
-  const filteredVocab = VOCAB_DATA.filter(
-    (item) => selectedCategory === 'All' || item.category === selectedCategory
-  );
-
-  const handleSelectWord = (word) => {
-    setPhrase((prev) => [...prev, word]);
-    triggerTextToSpeech(word.label);
-  };
-
-  const handleClear = () => {
-    setPhrase([]);
-    setSpeakingText('');
-  };
-
-  const triggerTextToSpeech = (text) => {
-    setSpeakingText(text);
-    // Simulating speaking delay
-    setTimeout(() => {
-      setSpeakingText('');
-    }, 1500);
-  };
-
-  const speakFullPhrase = () => {
-    if (phrase.length === 0) return;
-    const fullText = phrase.map((w) => w.label).join(' ');
-    triggerTextToSpeech(fullText);
-  };
-
-  const renderVocabCard = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.vocabCard, { backgroundColor: item.color }]}
-      onPress={() => handleSelectWord(item)}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.cardEmoji}>{item.emoji}</Text>
-      <Text style={[styles.cardLabel, { color: item.textColor }]}>{item.label}</Text>
-    </TouchableOpacity>
-  );
+  const cards = [
+    {
+      id: 'aac',
+      title: 'Picture Communication (AAC)',
+      desc: 'Build sentences with tap-to-speak picture symbols and voice synthesis.',
+      icon: '🖼️',
+      color: '#2563EB',
+      bg: '#EFF6FF',
+      route: 'AAC',
+    },
+    {
+      id: 'quick',
+      title: 'Quick Urgency Needs',
+      desc: 'High-contrast emergency tiles (Water, Restroom, Too Loud, Pain, Hug).',
+      icon: '⚡',
+      color: '#EF4444',
+      bg: '#FEF2F2',
+      route: 'QuickCommunication',
+    },
+    {
+      id: 'emotion',
+      title: 'Emotion-Aware Check-in',
+      desc: 'Visual feelings wheel & personalized empathetic sentence builder.',
+      icon: '❤️',
+      color: '#8B5CF6',
+      bg: '#F5F3FF',
+      route: 'Emotion',
+    },
+    {
+      id: 'history',
+      title: 'Communication History & Saved',
+      desc: 'Review frequent requests, spoken logs, and saved favorite phrases.',
+      icon: '📖',
+      color: '#10B981',
+      bg: '#ECFDF5',
+      route: 'CommunicationHistory',
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER SECTION */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.backIcon}>‹</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>AAC Talker</Text>
-          <Text style={styles.headerSubtitle}>Tap cards to speak thoughts</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.historyBtn}
-          onPress={() => navigation.navigate(ROUTES.COMMUNICATION_HISTORY)}
-        >
-          <Text style={styles.historyIcon}>🕒</Text>
-        </TouchableOpacity>
+        <Text style={styles.brandTitle}>AI Communication Hub</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      {/* SPEAKING SPEAKER BANNER */}
-      {speakingText ? (
-        <View style={styles.speakingBanner}>
-          <Text style={styles.speakingText}>🗣️ "{speakingText}"</Text>
-        </View>
-      ) : null}
-
-      {/* PHRASE BUILDER BAR */}
-      <View style={styles.phraseBarContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.phraseList}>
-          {phrase.length === 0 ? (
-            <Text style={styles.phrasePlaceholder}>Tapped words will build a sentence here...</Text>
-          ) : (
-            phrase.map((item, index) => (
-              <View key={`${item.id}-${index}`} style={[styles.phraseChip, { backgroundColor: item.color }]}>
-                <Text style={styles.chipEmoji}>{item.emoji}</Text>
-                <Text style={[styles.chipText, { color: item.textColor }]}>{item.label}</Text>
-              </View>
-            ))
-          )}
-        </ScrollView>
-        {phrase.length > 0 && (
-          <View style={styles.phraseActions}>
-            <TouchableOpacity style={styles.speakBtn} onPress={speakFullPhrase}>
-              <Text style={styles.actionBtnText}>🔊 Speak</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
-              <Text style={styles.actionBtnText}>✕ Clear</Text>
-            </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerIcon}>🗣️</Text>
+          <View style={styles.bannerTextCol}>
+            <Text style={styles.bannerTitle}>Voice & Picture Support</Text>
+            <Text style={styles.bannerSub}>
+              Inclusive assistive communication tools tailored for neurodivergent voices.
+            </Text>
           </View>
-        )}
-      </View>
+        </View>
 
-      {/* CATEGORY TABS */}
-      <View style={styles.categoryContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
-          {CATEGORIES.map((cat) => (
+        <Text style={styles.sectionHeading}>COMMUNICATION MODES</Text>
+
+        <View style={styles.cardList}>
+          {cards.map((item) => (
             <TouchableOpacity
-              key={cat}
-              style={[styles.categoryTab, selectedCategory === cat && styles.categoryTabActive]}
-              onPress={() => setSelectedCategory(cat)}
+              key={item.id}
+              style={[styles.card, { borderLeftColor: item.color }]}
+              onPress={() => navigation.navigate(item.route)}
+              activeOpacity={0.85}
             >
-              <Text style={[styles.categoryTabText, selectedCategory === cat && styles.categoryTabTextActive]}>
-                {cat}
-              </Text>
+              <View style={[styles.iconCircle, { backgroundColor: item.bg }]}>
+                <Text style={styles.cardIcon}>{item.icon}</Text>
+              </View>
+              <View style={styles.cardTextCol}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDesc}>{item.desc}</Text>
+              </View>
+              <Text style={styles.arrowIcon}>›</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
-      </View>
-
-      {/* VOCABULARY GRID */}
-      <FlatList
-        data={filteredVocab}
-        renderItem={renderVocabCard}
-        keyExtractor={(item) => item.id}
-        numColumns={GRID_COLUMNS}
-        key={GRID_COLUMNS}
-        contentContainerStyle={styles.gridContent}
-        columnWrapperStyle={styles.gridRow}
-      />
-
-      {/* FLOATING ACTION PANELS */}
-      <View style={styles.bottomTabShortcuts}>
-        <TouchableOpacity
-          style={[styles.shortcutBtn, { backgroundColor: '#FDF2F8' }]}
-          onPress={() => navigation.navigate(ROUTES.AAC)}
-        >
-          <Text style={styles.shortcutIcon}>🎨</Text>
-          <Text style={styles.shortcutLabel}>Custom Board</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.shortcutBtn, { backgroundColor: '#EFF6FF' }]}
-          onPress={() => navigation.navigate(ROUTES.EMOTION)}
-        >
-          <Text style={styles.shortcutIcon}>🎭</Text>
-          <Text style={styles.shortcutLabel}>Mood Check</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.shortcutBtn, { backgroundColor: '#FEF2F2' }]}
-          onPress={() => navigation.navigate(ROUTES.QUICK_COMMUNICATION)}
-        >
-          <Text style={styles.shortcutIcon}>🚨</Text>
-          <Text style={styles.shortcutLabel}>Quick Needs</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
-  headerTitle: {
-    fontSize: 18,
+  brandTitle: {
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
+  content: {
+    padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  historyBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  historyIcon: {
-    fontSize: 18,
-  },
-  speakingBanner: {
-    backgroundColor: '#1E293B',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  speakingText: {
-    color: '#38BDF8',
-    fontWeight: '800',
-    fontSize: 16,
-  },
-  phraseBarContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 14,
-    borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  phraseList: {
-    alignItems: 'center',
-    paddingVertical: 4,
-    minHeight: 50,
-  },
-  phrasePlaceholder: {
-    color: '#94A3B8',
-    fontSize: 12,
-    fontStyle: 'italic',
-  },
-  phraseChip: {
+  banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  chipEmoji: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  chipText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  phraseActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 10,
-  },
-  speakBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  clearBtn: {
-    backgroundColor: '#64748B',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  actionBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  categoryContainer: {
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  categoryList: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  categoryTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: '#EFF6FF',
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    marginBottom: 24,
+    gap: 14,
   },
-  categoryTabActive: {
-    backgroundColor: '#2563EB',
+  bannerIcon: {
+    fontSize: 32,
   },
-  categoryTabText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
+  bannerTextCol: {
+    flex: 1,
   },
-  categoryTabTextActive: {
-    color: '#FFFFFF',
+  bannerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#1E40AF',
   },
-  gridContent: {
-    padding: 16,
+  bannerSub: {
+    fontSize: 13,
+    color: '#3B82F6',
+    marginTop: 2,
+    lineHeight: 18,
   },
-  gridRow: {
-    justifyContent: 'flex-start',
-    gap: 12,
+  sectionHeading: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 1,
     marginBottom: 12,
   },
-  vocabCard: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
+  cardList: {
+    gap: 14,
   },
-  cardEmoji: {
-    fontSize: 32,
-    marginBottom: 6,
-  },
-  cardLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  bottomTabShortcuts: {
+  card: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'space-around',
-    gap: 10,
+    borderLeftWidth: 5,
+    padding: 16,
+    gap: 14,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  shortcutBtn: {
-    flex: 1,
-    flexDirection: 'row',
+  iconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
   },
-  shortcutIcon: {
+  cardIcon: {
+    fontSize: 24,
+  },
+  cardTextCol: {
+    flex: 1,
+  },
+  cardTitle: {
     fontSize: 16,
-  },
-  shortcutLabel: {
-    fontSize: 10,
     fontWeight: '800',
-    color: '#334155',
+    color: '#0F172A',
+  },
+  cardDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 17,
+  },
+  arrowIcon: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#94A3B8',
   },
 });

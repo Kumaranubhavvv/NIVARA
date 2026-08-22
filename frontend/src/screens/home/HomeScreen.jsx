@@ -115,6 +115,18 @@ export default function HomeScreen({ navigation }) {
       case 'COMMUNITY':
         navigation.navigate('CommunityTab');
         break;
+      case 'AAC':
+        navigation.navigate('AAC');
+        break;
+      case 'LEARNING':
+        navigation.navigate('LearningTab');
+        break;
+      case 'SENSORY':
+        navigation.navigate('SensoryHome');
+        break;
+      case 'GAMES':
+        navigation.navigate('GamesHome');
+        break;
       case 'LOCATION':
         navigation.navigate('LiveLocation');
         break;
@@ -148,7 +160,7 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View>
             <Text style={styles.brandTitle}>NIVARA</Text>
-            <Text style={styles.brandSubtitle}>Caregiver Community & Safety</Text>
+            <Text style={styles.brandSubtitle}>Unified Autism & Caregiver Support Platform</Text>
           </View>
         </View>
 
@@ -156,28 +168,52 @@ export default function HomeScreen({ navigation }) {
         {isDesktop && (
           <View style={styles.desktopNavTabs}>
             <TouchableOpacity
-              style={[styles.desktopTabItem, styles.desktopTabItemActive]}
+              style={[styles.desktopTabItem, activeTab === 'HOME' && styles.desktopTabItemActive]}
               onPress={() => navigateToTab('HOME')}
             >
-              <Text style={[styles.desktopTabLabel, styles.desktopTabLabelActive]}>🏠 Home</Text>
+              <Text style={[styles.desktopTabLabel, activeTab === 'HOME' && styles.desktopTabLabelActive]}>🏠 Home</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.desktopTabItem}
+              style={[styles.desktopTabItem, activeTab === 'COMMUNITY' && styles.desktopTabItemActive]}
               onPress={() => navigateToTab('COMMUNITY')}
             >
-              <Text style={styles.desktopTabLabel}>👥 Community</Text>
+              <Text style={[styles.desktopTabLabel, activeTab === 'COMMUNITY' && styles.desktopTabLabelActive]}>👥 Community</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.desktopTabItem}
+              style={[styles.desktopTabItem, activeTab === 'AAC' && styles.desktopTabItemActive]}
+              onPress={() => navigateToTab('AAC')}
+            >
+              <Text style={[styles.desktopTabLabel, activeTab === 'AAC' && styles.desktopTabLabelActive]}>🖼️ AAC Board</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.desktopTabItem, activeTab === 'LEARNING' && styles.desktopTabItemActive]}
+              onPress={() => navigateToTab('LEARNING')}
+            >
+              <Text style={[styles.desktopTabLabel, activeTab === 'LEARNING' && styles.desktopTabLabelActive]}>🎓 Learning</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.desktopTabItem, activeTab === 'SENSORY' && styles.desktopTabItemActive]}
+              onPress={() => navigateToTab('SENSORY')}
+            >
+              <Text style={[styles.desktopTabLabel, activeTab === 'SENSORY' && styles.desktopTabLabelActive]}>🎧 Sensory</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.desktopTabItem, activeTab === 'GAMES' && styles.desktopTabItemActive]}
+              onPress={() => navigateToTab('GAMES')}
+            >
+              <Text style={[styles.desktopTabLabel, activeTab === 'GAMES' && styles.desktopTabLabelActive]}>🎮 Games</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.desktopTabItem, activeTab === 'LOCATION' && styles.desktopTabItemActive]}
               onPress={() => navigateToTab('LOCATION')}
             >
-              <Text style={styles.desktopTabLabel}>📍 Live Location</Text>
+              <Text style={[styles.desktopTabLabel, activeTab === 'LOCATION' && styles.desktopTabLabelActive]}>📍 Live GPS</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.desktopTabItem}
+              style={[styles.desktopTabItem, activeTab === 'SAFETY' && styles.desktopTabItemActive]}
               onPress={() => navigateToTab('SAFETY')}
             >
-              <Text style={styles.desktopTabLabel}>🛡️ Safety Center</Text>
+              <Text style={[styles.desktopTabLabel, activeTab === 'SAFETY' && styles.desktopTabLabelActive]}>🛡️ Safety</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -390,35 +426,35 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.quickGrid}>
           <TouchableOpacity
             style={styles.quickItem}
+            onPress={() => navigation.navigate('AAC')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Text style={styles.quickActionIcon}>🖼️</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>AAC Board</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('LearningTab')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#ECFDF5' }]}>
+              <Text style={styles.quickActionIcon}>🎓</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>Routines</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
             onPress={() => navigation.navigate('LiveLocation')}
             activeOpacity={0.85}
           >
             <View style={[styles.quickIconCircle, { backgroundColor: '#EFF6FF' }]}>
               <Text style={styles.quickActionIcon}>📍</Text>
             </View>
-            <Text style={styles.quickActionLabel}>Live Location</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickItem}
-            onPress={() => navigation.navigate('GPSBand')}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: '#ECFDF5' }]}>
-              <Text style={styles.quickActionIcon}>⌚</Text>
-            </View>
-            <Text style={styles.quickActionLabel}>GPS Band</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickItem}
-            onPress={() => navigation.navigate('SafeZones')}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: '#F5F3FF' }]}>
-              <Text style={styles.quickActionIcon}>🛡️</Text>
-            </View>
-            <Text style={styles.quickActionLabel}>Safe Zones</Text>
+            <Text style={styles.quickActionLabel}>Live GPS</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -429,7 +465,29 @@ export default function HomeScreen({ navigation }) {
             <View style={[styles.quickIconCircle, { backgroundColor: '#FEF3C7' }]}>
               <Text style={styles.quickActionIcon}>💬</Text>
             </View>
-            <Text style={styles.quickActionLabel}>Discussions</Text>
+            <Text style={styles.quickActionLabel}>Community</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('Tutor')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#F5F3FF' }]}>
+              <Text style={styles.quickActionIcon}>🤖</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>AI Tutor</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickItem}
+            onPress={() => navigation.navigate('SensoryHome')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickIconCircle, { backgroundColor: '#F0FDF4' }]}>
+              <Text style={styles.quickActionIcon}>🎧</Text>
+            </View>
+            <Text style={styles.quickActionLabel}>Sensory</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

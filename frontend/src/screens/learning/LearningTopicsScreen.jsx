@@ -3,155 +3,199 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
 } from 'react-native';
-import { ROUTES } from '../../navigation/routes';
-
-const TOPICS = [
-  { id: 't1', title: 'Going to the Supermarket', category: 'Social Stories', emoji: '🛒', duration: '5 mins', difficulty: 'Easy', color: '#EFF6FF', text: '#1E40AF' },
-  { id: 't2', title: 'Crossing the Road Safely', emoji: '🚦', category: 'Life Skills', duration: '8 mins', difficulty: 'Medium', color: '#ECFDF5', text: '#065F46' },
-  { id: 't3', title: 'Calming in Loud Places', emoji: '🎧', category: 'Sensory Help', duration: '6 mins', difficulty: 'Easy', color: '#F5F3FF', text: '#5B21B6' },
-];
+import { useLearning } from '../../hooks/useLearning';
 
 export default function LearningTopicsScreen({ navigation }) {
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: item.text }]}
-      onPress={() => navigation.navigate(ROUTES.TASK_DETAILS, { topic: item })}
-      activeOpacity={0.85}
-    >
-      <View style={[styles.iconCircle, { backgroundColor: item.color }]}>
-        <Text style={styles.iconText}>{item.emoji}</Text>
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.category}>{item.category.toUpperCase()}</Text>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.meta}>
-          {item.duration} • {item.difficulty}
-        </Text>
-      </View>
-      <Text style={styles.arrow}>›</Text>
-    </TouchableOpacity>
-  );
+  const { topics } = useLearning();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Learning Library</Text>
-          <Text style={styles.headerSubtitle}>Select a social story or skill guide</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Personalized Topics & Stories</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      <FlatList
-        data={TOPICS}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.subPrompt}>
+          Interactive social stories, sensory regulation modules, and daily life skill guides.
+        </Text>
+
+        <View style={styles.topicList}>
+          {topics.map((topic) => (
+            <TouchableOpacity
+              key={topic.id}
+              style={[styles.topicCard, { borderLeftColor: topic.color || '#10B981' }]}
+              activeOpacity={0.88}
+            >
+              <View style={styles.topicHeader}>
+                <Text style={styles.topicIcon}>{topic.icon || '📖'}</Text>
+                <View style={styles.topicTextCol}>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryText}>{topic.category}</Text>
+                  </View>
+                  <Text style={styles.topicTitle}>{topic.title}</Text>
+                </View>
+                {topic.is_completed ? (
+                  <View style={styles.doneBadge}>
+                    <Text style={styles.doneText}>✓ Completed</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {topic.description ? (
+                <Text style={styles.topicDesc}>{topic.description}</Text>
+              ) : null}
+
+              {/* Progress bar */}
+              <View style={styles.progressRow}>
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${topic.progress_pct || 0}%`, backgroundColor: topic.color || '#10B981' },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressPct}>{topic.progress_pct || 0}%</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  listContent: {
+  content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  subPrompt: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  topicList: {
+    gap: 14,
+  },
+  topicCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
     borderLeftWidth: 5,
-    gap: 14,
+    padding: 18,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+  topicHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 8,
   },
-  iconText: {
-    fontSize: 22,
+  topicIcon: {
+    fontSize: 28,
   },
-  body: {
+  topicTextCol: {
     flex: 1,
   },
-  category: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#64748B',
-    letterSpacing: 0.5,
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 4,
   },
-  title: {
-    fontSize: 13,
+  categoryText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  topicTitle: {
+    fontSize: 16,
     fontWeight: '800',
     color: '#0F172A',
-    marginTop: 2,
   },
-  meta: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 2,
+  doneBadge: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  arrow: {
-    fontSize: 24,
-    color: '#94A3B8',
-    fontWeight: '300',
+  doneText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  topicDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  progressPct: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#475569',
   },
 });

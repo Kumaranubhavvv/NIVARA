@@ -1,307 +1,193 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   SafeAreaView,
-  Modal,
 } from 'react-native';
-
-const STEPS_DATA = {
-  'r1': [ // Morning Hygiene
-    { id: 's1', title: 'Put toothpaste on toothbrush', emoji: '🧴' },
-    { id: 's2', title: 'Brush teeth for 2 minutes', emoji: '🪥' },
-    { id: 's3', title: 'Rinse mouth with water', emoji: '💧' },
-    { id: 's4', title: 'Wash face and dry with towel', emoji: '🧼' },
-  ],
-  'r2': [ // Bedtime Transition
-    { id: 's5', title: 'Put on comfortable pajamas', emoji: '👕' },
-    { id: 's6', title: 'Brush teeth', emoji: '🪥' },
-    { id: 's7', title: 'Read a favorite storybook', emoji: '📖' },
-    { id: 's8', title: 'Turn on white noise machine', emoji: '🔊' },
-    { id: 's9', title: 'Get into bed and turn off lights', emoji: '🛌' },
-  ],
-  'r3': [ // Classroom Schedule
-    { id: 's10', title: 'Hang backpack on coat hook', emoji: '🎒' },
-    { id: 's11', title: 'Check in on visual mood card board', emoji: '🎭' },
-    { id: 's12', title: 'Sit at desk and open workbook', emoji: '📝' },
-  ],
-};
+import { useLearning } from '../../hooks/useLearning';
 
 export default function RoutineDetailsScreen({ route, navigation }) {
-  const { routine } = route.params || { routine: { id: 'r1', name: 'Morning Hygiene' } };
-  const steps = STEPS_DATA[routine.id] || [];
+  const { routineId } = route.params || {};
+  const { routines, toggleStep } = useLearning();
 
-  const [checkedSteps, setCheckedSteps] = useState({});
-  const [completeModalVisible, setCompleteModalVisible] = useState(false);
-
-  const handleToggleStep = (stepId) => {
-    const updated = { ...checkedSteps, [stepId]: !checkedSteps[stepId] };
-    setCheckedSteps(updated);
-
-    // Check if all steps are completed
-    const completedCount = Object.keys(updated).filter((k) => updated[k]).length;
-    if (completedCount === steps.length) {
-      setTimeout(() => {
-        setCompleteModalVisible(true);
-      }, 500);
-    }
-  };
-
-  const completedCount = Object.keys(checkedSteps).filter((k) => checkedSteps[k]).length;
-  const progressPercent = steps.length ? Math.round((completedCount / steps.length) * 100) : 0;
+  const routine = routines.find((r) => r.id === routineId) || routines[0];
+  const steps = routine?.steps || [];
+  const completedCount = steps.filter((s) => s.is_completed).length;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>{routine.name}</Text>
-          <Text style={styles.headerSubtitle}>Follow the steps below</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>{routine?.title || 'Routine Details'}</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      {/* PROGRESS TRACKER */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressTextRow}>
-          <Text style={styles.progressLabel}>Steps Completed</Text>
-          <Text style={styles.progressVal}>{completedCount} / {steps.length} ({progressPercent}%)</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Hero Card */}
+        <View style={[styles.heroCard, { backgroundColor: `${routine?.color || '#3B82F6'}15` }]}>
+          <Text style={styles.heroEmoji}>{routine?.icon || '🌅'}</Text>
+          <Text style={styles.heroTitle}>{routine?.title}</Text>
+          <Text style={styles.heroSub}>
+            {completedCount} of {steps.length} steps completed
+          </Text>
         </View>
-        <View style={styles.progressBarBg}>
-          <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-        </View>
-      </View>
 
-      {/* CHECKLIST */}
-      <ScrollView contentContainerStyle={styles.listContent}>
-        {steps.map((item, index) => {
-          const isDone = !!checkedSteps[item.id];
-          return (
+        <Text style={styles.sectionTitle}>STEP-BY-STEP CHECKLIST</Text>
+
+        <View style={styles.stepList}>
+          {steps.map((step, idx) => (
             <TouchableOpacity
-              key={item.id}
-              style={[styles.stepCard, isDone && styles.stepCardDone]}
-              onPress={() => handleToggleStep(item.id)}
-              activeOpacity={0.8}
+              key={step.id || idx}
+              style={[styles.stepItem, step.is_completed && styles.stepItemDone]}
+              onPress={() => toggleStep(routine.id, step.id)}
+              activeOpacity={0.85}
             >
-              <View style={styles.stepNumCircle}>
-                <Text style={styles.stepNumText}>{index + 1}</Text>
+              <View style={[styles.checkCircle, step.is_completed && styles.checkCircleDone]}>
+                <Text style={styles.checkIcon}>{step.is_completed ? '✓' : step.step_number}</Text>
               </View>
-              <Text style={styles.stepEmoji}>{item.emoji}</Text>
-              <Text style={[styles.stepTitle, isDone && styles.stepTitleDone]}>
-                {item.title}
-              </Text>
-              <View style={[styles.checkbox, isDone && styles.checkboxChecked]}>
-                {isDone && <Text style={styles.checkMark}>✓</Text>}
+
+              <View style={styles.stepTextCol}>
+                <Text style={[styles.stepTitle, step.is_completed && styles.stepTitleDone]}>
+                  {step.title}
+                </Text>
+                {step.instruction ? (
+                  <Text style={styles.stepInstruction}>{step.instruction}</Text>
+                ) : null}
+              </View>
+
+              <View style={styles.stepRightIcon}>
+                <Text style={{ fontSize: 24 }}>{step.icon || '✨'}</Text>
               </View>
             </TouchableOpacity>
-          );
-        })}
+          ))}
+        </View>
       </ScrollView>
-
-      {/* COMPLETE MODAL */}
-      <Modal animationType="fade" transparent={true} visible={completeModalVisible}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalEmoji}>🎉</Text>
-            <Text style={styles.modalTitle}>Awesome Job!</Text>
-            <Text style={styles.modalDesc}>
-              You finished the "{routine.name}" routine! Give yourself a high five.
-            </Text>
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => {
-                setCompleteModalVisible(false);
-                navigation.goBack();
-              }}
-            >
-              <Text style={styles.modalCloseText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  progressContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  progressTextRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#64748B',
-  },
-  progressVal: {
-    fontSize: 12,
-    fontWeight: '900',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
     color: '#2563EB',
   },
-  progressBarBg: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: '#EEF2F6',
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0F172A',
   },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: '#10B981',
-  },
-  listContent: {
+  content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  stepCard: {
+  heroCard: {
+    borderRadius: 22,
+    padding: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  heroEmoji: {
+    fontSize: 44,
+    marginBottom: 8,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
+  },
+  heroSub: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  stepList: {
+    gap: 12,
+  },
+  stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    gap: 12,
+    padding: 16,
+    gap: 14,
   },
-  stepCardDone: {
-    borderColor: '#A7F3D0',
+  stepItemDone: {
     backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
   },
-  stepNumCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#EEF2F6',
-    justifyContent: 'center',
+  checkCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  stepNumText: {
-    fontSize: 10,
+  checkCircleDone: {
+    backgroundColor: '#10B981',
+  },
+  checkIcon: {
+    fontSize: 14,
     fontWeight: '900',
-    color: '#64748B',
+    color: '#0F172A',
   },
-  stepEmoji: {
-    fontSize: 22,
+  stepTextCol: {
+    flex: 1,
   },
   stepTitle: {
-    flex: 1,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
   },
   stepTitleDone: {
+    color: '#047857',
     textDecorationLine: 'line-through',
-    color: '#94A3B8',
   },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    justifyContent: 'center',
+  stepInstruction: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  stepRightIcon: {
+    width: 36,
     alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  checkMark: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-  },
-  modalEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#0F172A',
-    marginBottom: 8,
-  },
-  modalDesc: {
-    fontSize: 13,
-    color: '#475569',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
-  },
-  modalCloseBtn: {
-    backgroundColor: '#10B981',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  modalCloseText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
   },
 });

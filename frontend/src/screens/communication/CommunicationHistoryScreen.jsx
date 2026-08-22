@@ -3,142 +3,198 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
 } from 'react-native';
-
-const MOCK_HISTORY = [
-  { id: 'h1', text: 'I want Eat Apple', time: 'Today, 10:30 AM', category: 'Needs', color: '#FEF3C7', textColor: '#92400E' },
-  { id: 'h2', text: 'Toilet Help', time: 'Today, 09:15 AM', category: 'Emergency', color: '#FEF2F2', textColor: '#991B1B' },
-  { id: 'h3', text: 'Happy Home', time: 'Yesterday, 04:30 PM', category: 'Feelings', color: '#ECFDF5', textColor: '#065F46' },
-  { id: 'h4', text: 'Go Park Play', time: 'Yesterday, 11:00 AM', category: 'Actions', color: '#EFF6FF', textColor: '#1E40AF' },
-];
+import { useCommunication } from '../../hooks/useCommunication';
 
 export default function CommunicationHistoryScreen({ navigation }) {
-  const renderItem = ({ item }) => (
-    <View style={styles.historyRow}>
-      <View style={[styles.badge, { backgroundColor: item.color }]}>
-        <Text style={[styles.badgeText, { color: item.textColor }]}>{item.category}</Text>
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.historyText}>"{item.text}"</Text>
-        <Text style={styles.timeText}>{item.time}</Text>
-      </View>
-    </View>
-  );
+  const { savedPhrases, historyLogs, speakSentence } = useCommunication();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Talker Logs</Text>
-          <Text style={styles.headerSubtitle}>Review child's vocalized cards history</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>History & Saved Phrases</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      <FlatList
-        data={MOCK_HISTORY}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No phrase history logged yet.</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Saved Favorites */}
+        <Text style={styles.sectionTitle}>FAVORITE SAVED PHRASES ({savedPhrases.length})</Text>
+        {savedPhrases.length === 0 ? (
+          <Text style={styles.emptyText}>No saved phrases yet. Tap "Save" in the AAC sentence builder to keep favorites here!</Text>
+        ) : (
+          <View style={styles.list}>
+            {savedPhrases.map((phrase) => (
+              <View key={phrase.id} style={styles.savedCard}>
+                <Text style={styles.phraseIcon}>⭐</Text>
+                <Text style={styles.phraseText}>{phrase.text}</Text>
+                <TouchableOpacity
+                  style={styles.speakPill}
+                  onPress={() => speakSentence(phrase.text)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.speakIcon}>🗣️</Text>
+                  <Text style={styles.speakLabel}>Speak</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
-        }
-      />
+        )}
+
+        {/* Recent Communication Logs */}
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>RECENT SPOKEN REQUESTS</Text>
+        {historyLogs.length === 0 ? (
+          <Text style={styles.emptyText}>No communication requests logged yet today.</Text>
+        ) : (
+          <View style={styles.list}>
+            {historyLogs.map((log, idx) => (
+              <View key={log.id || idx} style={styles.logCard}>
+                <View style={styles.logDot} />
+                <View style={styles.logBody}>
+                  <Text style={styles.logSentence}>"{log.sentence}"</Text>
+                  <Text style={styles.logMeta}>Source: {log.source?.toUpperCase()} • Audio Spoken</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.replayBtn}
+                  onPress={() => speakSentence(log.sentence)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.replayIcon}>🔁</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  listContent: {
+  content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  historyRow: {
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  list: {
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    paddingVertical: 8,
+  },
+  savedCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    gap: 12,
+    padding: 14,
+    gap: 10,
   },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+  phraseIcon: {
+    fontSize: 18,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  body: {
+  phraseText: {
     flex: 1,
-  },
-  historyText: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#0F172A',
   },
-  timeText: {
-    fontSize: 10,
+  speakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    gap: 4,
+  },
+  speakIcon: {
+    fontSize: 13,
+  },
+  speakLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2563EB',
+  },
+  logCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+    padding: 12,
+    gap: 10,
+  },
+  logDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3B82F6',
+  },
+  logBody: {
+    flex: 1,
+  },
+  logSentence: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  logMeta: {
+    fontSize: 11,
     color: '#94A3B8',
     marginTop: 2,
   },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
+  replayBtn: {
+    padding: 6,
   },
-  emptyText: {
-    fontSize: 12,
-    color: '#64748B',
-    fontStyle: 'italic',
+  replayIcon: {
+    fontSize: 16,
   },
 });

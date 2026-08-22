@@ -1,171 +1,127 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Modal,
-  Dimensions,
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const GRID_COLUMNS = width > 768 ? 3 : 2;
+import { useCommunication } from '../../hooks/useCommunication';
 
 const QUICK_NEEDS = [
-  { id: 'qn1', label: 'HELP ME', emoji: '🚨', color: '#FEF2F2', border: '#FECACA', text: '#991B1B' },
-  { id: 'qn2', label: 'I AM HURT', emoji: '🩹', color: '#FEF2F2', border: '#FECACA', text: '#991B1B' },
-  { id: 'qn3', label: 'GO HOME', emoji: '🏠', color: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF' },
-  { id: 'qn4', label: 'THIRSTY', emoji: '🥤', color: '#E0F2FE', border: '#BAE6FD', text: '#0369A1' },
-  { id: 'qn5', label: 'HUNGRY', emoji: '🍎', color: '#FEF3C7', border: '#FDE68A', text: '#92400E' },
-  { id: 'qn6', label: 'LOUD NOISE', emoji: '🔊', color: '#FFF7ED', border: '#FFEDD5', text: '#C2410C' },
+  { id: 'water', label: 'I Need Water', icon: '💧', text: 'I need a glass of water, please.', color: '#3B82F6', bg: '#EFF6FF' },
+  { id: 'toilet', label: 'Restroom Now', icon: '🚻', text: 'I need to use the restroom right now, please.', color: '#10B981', bg: '#ECFDF5' },
+  { id: 'help', label: 'I Need Help', icon: '🛟', text: 'Please help me with this.', color: '#F59E0B', bg: '#FFFBEB' },
+  { id: 'too_loud', label: 'Too Loud!', icon: '🎧', text: 'It is too loud here. I need quiet headphones or a break.', color: '#EF4444', bg: '#FEF2F2' },
+  { id: 'pain', label: 'It Hurts / Pain', icon: '🩹', text: 'Something hurts and I feel discomfort.', color: '#DC2626', bg: '#FEE2E2' },
+  { id: 'break', label: 'I Need a Break', icon: '🛑', text: 'I feel overwhelmed and need a 5 minute break.', color: '#8B5CF6', bg: '#F5F3FF' },
+  { id: 'hug', label: 'I Need a Hug', icon: '🫂', text: 'Can I have a gentle hug, please?', color: '#EC4899', bg: '#FDF2F8' },
+  { id: 'hungry', label: 'I am Hungry', icon: '🍎', text: 'I am hungry and would like a snack.', color: '#D97706', bg: '#FEF3C7' },
 ];
 
 export default function QuickCommunicationScreen({ navigation }) {
-  const [activeAlert, setActiveAlert] = useState(null);
-
-  const handleSelectNeed = (item) => {
-    setActiveAlert(item);
-    // Auto-dismiss alert pop-up
-    setTimeout(() => {
-      setActiveAlert(null);
-    }, 2000);
-  };
+  const { speakSentence, speaking } = useCommunication();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Quick Needs</Text>
-          <Text style={styles.headerSubtitle}>Tap large cards for immediate help</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Quick Urgency Needs</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      {/* QUICK NEED CARDS */}
-      <View style={styles.grid}>
-        {QUICK_NEEDS.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={[styles.card, { backgroundColor: item.color, borderColor: item.border }]}
-            onPress={() => handleSelectNeed(item)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.cardEmoji}>{item.emoji}</Text>
-            <Text style={[styles.cardLabel, { color: item.text }]}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.subPrompt}>Tap any tile for instant loud and clear audio speech.</Text>
 
-      {/* FULL-SCREEN ALERT OVERLAY */}
-      <Modal visible={activeAlert !== null} transparent={true} animationType="fade">
-        <View style={[styles.overlay, { backgroundColor: activeAlert?.color || '#FEF2F2' }]}>
-          <Text style={styles.overlayEmoji}>{activeAlert?.emoji}</Text>
-          <Text style={[styles.overlayLabel, { color: activeAlert?.text || '#991B1B' }]}>
-            {activeAlert?.label}
-          </Text>
-          <Text style={styles.overlaySub}>Simulating sound synthesis output...</Text>
+        <View style={styles.grid}>
+          {QUICK_NEEDS.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[styles.tile, { backgroundColor: item.bg, borderColor: item.color }]}
+              onPress={() => speakSentence(item.text)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.tileIcon}>{item.icon}</Text>
+              <Text style={[styles.tileLabel, { color: item.color }]}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
+  content: {
+    padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  subPrompt: {
+    fontSize: 13,
     color: '#64748B',
-    textAlign: 'center',
+    marginBottom: 16,
+    fontWeight: '600',
   },
   grid: {
-    flex: 1,
-    padding: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: 12,
+    justifyContent: 'space-between',
   },
-  card: {
-    width: '45%',
-    aspectRatio: 1,
-    borderRadius: 24,
+  tile: {
+    width: '48%',
+    minHeight: 120,
+    borderRadius: 22,
     borderWidth: 2,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 16,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  cardEmoji: {
-    fontSize: 54,
-    marginBottom: 10,
+  tileIcon: {
+    fontSize: 38,
+    marginBottom: 8,
   },
-  cardLabel: {
-    fontSize: 14,
+  tileLabel: {
+    fontSize: 16,
     fontWeight: '900',
     textAlign: 'center',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  overlayEmoji: {
-    fontSize: 120,
-    marginBottom: 20,
-  },
-  overlayLabel: {
-    fontSize: 36,
-    fontWeight: '900',
-    textAlign: 'center',
-    letterSpacing: 1,
-  },
-  overlaySub: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 10,
-    fontStyle: 'italic',
   },
 });

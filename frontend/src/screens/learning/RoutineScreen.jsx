@@ -3,166 +3,106 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
 } from 'react-native';
-import { ROUTES } from '../../navigation/routes';
-
-const ROUTINES = [
-  { id: 'r1', name: 'Morning Hygiene', emoji: '🪥', stepsCount: 4, duration: '15 mins', completed: true, color: '#EFF6FF', text: '#1E40AF' },
-  { id: 'r2', name: 'Bedtime Transition', emoji: '🛌', stepsCount: 5, duration: '20 mins', completed: false, color: '#F5F3FF', text: '#5B21B6' },
-  { id: 'r3', name: 'Classroom Schedule', emoji: '🏫', stepsCount: 3, duration: '30 mins', completed: false, color: '#ECFDF5', text: '#065F46' },
-];
+import { useLearning } from '../../hooks/useLearning';
+import RoutineCard from '../../components/learning/RoutineCard';
 
 export default function RoutineScreen({ navigation }) {
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: item.textColor || '#2563EB' }]}
-      onPress={() => navigation.navigate(ROUTES.ROUTINE_DETAILS, { routine: item })}
-      activeOpacity={0.85}
-    >
-      <View style={[styles.iconCircle, { backgroundColor: item.color }]}>
-        <Text style={styles.iconText}>{item.emoji}</Text>
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.meta}>
-          {item.stepsCount} visual steps • {item.duration}
-        </Text>
-      </View>
-      <View style={[styles.statusBadge, item.completed ? styles.statusBadgeDone : styles.statusBadgePending]}>
-        <Text style={item.completed ? styles.statusTextDone : styles.statusTextPending}>
-          {item.completed ? '✓ Done' : 'Pending'}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const { routines, toggleStep, resetRoutine } = useLearning();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Visual Routines</Text>
-          <Text style={styles.headerSubtitle}>Daily task listings and visual triggers</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Daily Visual Routines</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      <FlatList
-        data={ROUTINES}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.subPrompt}>
+          Consistent visual schedules help manage transitions smoothly and build autonomy.
+        </Text>
+
+        {routines.map((routine) => (
+          <View key={routine.id} style={styles.routineWrapper}>
+            <RoutineCard
+              routine={routine}
+              onToggleStep={toggleStep}
+              onOpenDetails={() => navigation.navigate('RoutineDetails', { routineId: routine.id })}
+            />
+            <TouchableOpacity
+              style={styles.resetBtn}
+              onPress={() => resetRoutine(routine.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.resetBtnText}>🔄 Reset for Today</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  listContent: {
+  content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderLeftWidth: 5,
-    gap: 14,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    fontSize: 22,
-  },
-  body: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  meta: {
-    fontSize: 11,
+  subPrompt: {
+    fontSize: 13,
     color: '#64748B',
-    marginTop: 2,
+    marginBottom: 16,
+    fontWeight: '500',
+    lineHeight: 18,
   },
-  statusBadge: {
-    paddingHorizontal: 8,
+  routineWrapper: {
+    marginBottom: 16,
+  },
+  resetBtn: {
+    alignSelf: 'flex-end',
+    marginTop: -4,
+    marginBottom: 12,
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 6,
   },
-  statusBadgeDone: {
-    backgroundColor: '#ECFDF5',
-  },
-  statusBadgePending: {
-    backgroundColor: '#F1F5F9',
-  },
-  statusTextDone: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#059669',
-  },
-  statusTextPending: {
-    fontSize: 10,
+  resetBtnText: {
+    fontSize: 12,
     fontWeight: '700',
     color: '#64748B',
   },

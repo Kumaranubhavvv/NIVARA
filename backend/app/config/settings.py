@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-nivara-safety-key-2026-very-secure")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", os.getenv("JWT_SECRET", "nivara-super-secret-key-caregiver-community-2026"))
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Geofencing & Safety Defaults
     DEFAULT_SAFE_ZONE_RADIUS_METERS: float = 150.0
     SEPARATION_ALERT_THRESHOLD_METERS: float = 50.0
+    HEARTBEAT_TIMEOUT_SECONDS: int = 120
     LOW_BATTERY_ALERT_THRESHOLD: int = 15
     GPS_ACCURACY_THRESHOLD_METERS: float = 100.0
     LOCATION_UPDATE_INTERVAL_SECONDS: int = 10

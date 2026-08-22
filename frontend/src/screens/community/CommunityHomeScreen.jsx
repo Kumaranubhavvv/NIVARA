@@ -516,6 +516,16 @@ export default function CommunityHomeScreen({ navigation }) {
         {/* Navigation List */}
         <ScrollView style={styles.sidebarNav} showsVerticalScrollIndicator={false}>
           <TouchableOpacity
+            style={[styles.navItem, { backgroundColor: '#EFF6FF', marginBottom: 8, borderRadius: 12, borderWidth: 1, borderColor: '#DBEAFE' }]}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.navIcon}>✨</Text>
+            <Text style={[styles.navLabel, { color: '#2563EB', fontWeight: '800' }]}>
+              NIVARA Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[
               styles.navItem,
               activeSection === 'dashboard' ? styles.navItemActive : null,
@@ -529,7 +539,7 @@ export default function CommunityHomeScreen({ navigation }) {
                 activeSection === 'dashboard' ? styles.navLabelActive : null,
               ]}
             >
-              Dashboard
+              Community Hub
             </Text>
           </TouchableOpacity>
 

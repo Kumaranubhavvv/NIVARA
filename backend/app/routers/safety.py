@@ -13,21 +13,31 @@ from app.schemas.safety_event import SafetyOverviewSummary
 from app.services.location_service import location_service
 from app.services.separation_service import separation_service
 
-from app.routers.location import router as location_router
+from app.domains.safety.router import router as gps_location_core_router
+from app.domains.safety.band_router import router as band_router
+from app.domains.safety.separation_router import router as separation_router
+from app.domains.safety.safe_zone_router import router as safe_zone_domain_router
+from app.domains.safety.emergency_router import router as emergency_domain_router
+from app.domains.safety.emergency_contact_router import router as emergency_contact_domain_router
+from app.domains.safety.alert_router import router as alert_domain_router
 from app.routers.devices import router as devices_router
-from app.routers.safe_zones import router as safe_zones_router
+from app.routers.location import router as location_router
 from app.routers.emergencies import router as emergencies_router
-from app.routers.emergency_contacts import router as emergency_contacts_router
 from app.routers.safety_events import router as safety_events_router
 
 router = APIRouter(prefix="/safety", tags=["Safety - Master Hub"])
 
 # Include sub-routers
-router.include_router(location_router)
+router.include_router(gps_location_core_router)
+router.include_router(band_router)
+router.include_router(separation_router)
+router.include_router(safe_zone_domain_router)
+router.include_router(emergency_domain_router)
+router.include_router(emergency_contact_domain_router)
+router.include_router(alert_domain_router)
 router.include_router(devices_router)
-router.include_router(safe_zones_router)
+router.include_router(location_router)
 router.include_router(emergencies_router)
-router.include_router(emergency_contacts_router)
 router.include_router(safety_events_router)
 
 @router.get("/status")

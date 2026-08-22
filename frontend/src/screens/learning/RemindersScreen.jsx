@@ -1,151 +1,141 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
   Switch,
 } from 'react-native';
-
-const MOCK_REMINDERS = [
-  { id: 'rem-1', title: 'Morning Medication', time: '08:00 AM', active: true, emoji: '💊', days: 'Mon, Tue, Wed, Thu, Fri' },
-  { id: 'rem-2', title: 'Pack Backpack', time: '08:30 AM', active: true, emoji: '🎒', days: 'Mon, Tue, Wed, Thu, Fri' },
-  { id: 'rem-3', title: 'Calming Breathing Practice', time: '02:00 PM', active: false, emoji: '🎧', days: 'Every day' },
-  { id: 'rem-4', title: 'Bedtime teeth brush', time: '09:00 PM', active: true, emoji: '🪥', days: 'Every day' },
-];
+import { useLearning } from '../../hooks/useLearning';
 
 export default function RemindersScreen({ navigation }) {
-  const [reminders, setReminders] = useState(MOCK_REMINDERS);
-
-  const handleToggleReminder = (id) => {
-    setReminders((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, active: !item.active } : item))
-    );
-  };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.iconCircle}>
-        <Text style={styles.icon}>{item.emoji}</Text>
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.time}>{item.time} • {item.days}</Text>
-      </View>
-      <Switch
-        value={item.active}
-        onValueChange={() => handleToggleReminder(item.id)}
-        trackColor={{ false: '#E2E8F0', true: '#BFDBFE' }}
-        thumbColor={item.active ? '#2563EB' : '#94A3B8'}
-      />
-    </View>
-  );
+  const { reminders, toggleReminder } = useLearning();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>Reminders & Schedules</Text>
-          <Text style={styles.headerSubtitle}>Set visual notifications and triggers</Text>
-        </View>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Reminders & Sensory Breaks</Text>
+        <View style={{ width: 50 }} />
       </View>
 
-      <FlatList
-        data={reminders}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.subPrompt}>
+          Timely prompts for hydration, transition warnings, and calming sensory breaks.
+        </Text>
+
+        <View style={styles.remindersList}>
+          {reminders.map((rem) => (
+            <View key={rem.id} style={styles.reminderCard}>
+              <View style={styles.iconCircle}>
+                <Text style={styles.reminderIcon}>{rem.icon || '⏰'}</Text>
+              </View>
+
+              <View style={styles.reminderTextCol}>
+                <Text style={styles.reminderTitle}>{rem.title}</Text>
+                <Text style={styles.reminderMeta}>
+                  {rem.time_str} • {rem.frequency} • {rem.category}
+                </Text>
+              </View>
+
+              <Switch
+                value={rem.is_active}
+                onValueChange={() => toggleReminder(rem.id)}
+                trackColor={{ false: '#E2E8F0', true: '#BFDBFE' }}
+                thumbColor={rem.is_active ? '#2563EB' : '#94A3B8'}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAFBFD',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomColor: '#EEF2F6',
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#0F172A',
-    fontWeight: '300',
+  backText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  listContent: {
+  content: {
     padding: 20,
+    maxWidth: 680,
+    alignSelf: 'center',
+    width: '100%',
   },
-  card: {
+  subPrompt: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  remindersList: {
+    gap: 12,
+  },
+  reminderCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
+    padding: 16,
     gap: 14,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 1,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  icon: {
+  reminderIcon: {
     fontSize: 22,
   },
-  body: {
+  reminderTextCol: {
     flex: 1,
   },
-  title: {
-    fontSize: 13,
+  reminderTitle: {
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
   },
-  time: {
-    fontSize: 10,
+  reminderMeta: {
+    fontSize: 12,
     color: '#64748B',
     marginTop: 2,
   },
