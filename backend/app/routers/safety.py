@@ -10,7 +10,9 @@ from app.models.emergency import EmergencyAlert
 from app.models.safety_event import SafetyEvent
 from app.models.device import Device
 from app.schemas.safety_event import SafetyOverviewSummary
+from datetime import datetime, timezone
 from app.services.location_service import location_service
+from app.services.geofence_service import geofence_service
 from app.services.separation_service import separation_service
 
 from app.domains.safety.router import router as gps_location_core_router
