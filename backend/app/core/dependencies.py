@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
+from app.core.permissions import require_role, ROLE_ADMIN, ROLE_CAREGIVER, ROLE_SUPPORTED_USER
 
 def get_current_user(
     authorization: str = Header(None),
@@ -51,3 +52,15 @@ def require_verified_caregiver(
             detail="UNVERIFIED_CAREGIVER: Access restricted to verified caregivers only."
         )
     return caregiver
+
+def get_authenticated_user(user: User = Depends(get_current_user)) -> User:
+    return user
+
+def require_caregiver(user: User = Depends(get_current_user)) -> User:
+    return require_role(user, ROLE_CAREGIVER, ROLE_ADMIN)
+
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    return require_role(user, ROLE_ADMIN)
+
+def require_supported_user(user: User = Depends(get_current_user)) -> User:
+    return require_role(user, ROLE_SUPPORTED_USER, ROLE_ADMIN)

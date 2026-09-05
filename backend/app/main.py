@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect
 from app.core.database import Base, engine, SessionLocal, sync_database_schema
 from app.core.security import get_password_hash
+from app.core.exception_handlers import register_exception_handlers
+from app.core.middleware import RequestContextMiddleware
 from app.api.router import api_router
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
@@ -13,6 +15,8 @@ from app.domains.communication.models import AACCategory, AACCard, SavedPhrase, 
 from app.domains.learning.models import Routine, RoutineStep, Task, Reminder, LearningTopic, TutorChatSession
 
 app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
+register_exception_handlers(app)
+app.add_middleware(RequestContextMiddleware)
 
 # Enable CORS for frontend web and mobile clients
 app.add_middleware(
@@ -345,12 +349,6 @@ def startup_event():
             db.commit()
 
         # Seed Safety demo data: Child, Device, SafeZone, Emergency Contact
-        from app.models.child import Child
-        from app.models.device import Device
-        from app.models.safe_zone import SafeZone
-        from app.models.emergency_contact import EmergencyContact
-        from app.models.location import Location
-
         leo = db.query(Child).filter(Child.id == "child-leo-1").first()
         if not leo:
             leo = Child(
@@ -391,6 +389,7 @@ def startup_event():
                 is_active=True,
                 alert_on_exit=True,
             )
+
             db.add(home_zone)
 
             contact = EmergencyContact(
@@ -592,6 +591,13 @@ def startup_event():
     finally:
         db.close()
 
+from app.core.database import connect_mongodb, close_mongodb
+
 @app.on_event("startup")
 def on_startup():
     startup_event()
+    connect_mongodb()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    close_mongodb()

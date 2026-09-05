@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/home/HomeScreen';
+import NotificationsScreen from '../screens/home/NotificationsScreen';
 import CommunityNavigator from './CommunityNavigator';
 import SafetyNavigator from './SafetyNavigator';
 import CommunicationNavigator from './CommunicationNavigator';
@@ -22,7 +23,7 @@ import DeviceStatusScreen from '../screens/caregiver/DeviceStatusScreen';
 import SafetyOverviewScreen from '../screens/caregiver/SafetyOverviewScreen';
 import SupportCenterScreen from '../screens/caregiver/SupportCenterScreen';
 
-// Direct Communication screens
+a// Direct Communication screens
 import AACScreen from '../screens/communication/AACScreen';
 import CommunicationScreen from '../screens/communication/CommunicationScreen';
 import EmotionScreen from '../screens/communication/EmotionScreen';
@@ -51,12 +52,16 @@ export default function MainNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Home">
       {/* 1. Flagship Unified Home Dashboard */}
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
       {/* 2. Main Hub Portals */}
       <Stack.Screen name="CommunicationTab" component={CommunicationNavigator} />
       <Stack.Screen name="LearningTab" component={LearningNavigator} />
       <Stack.Screen name="CommunityTab" component={CommunityNavigator} />
       <Stack.Screen name="SafetyTab" component={SafetyNavigator} />
+      <Stack.Screen name="CommunicationTab" component={CommunicationNavigator} />
+      <Stack.Screen name="LearningTab" component={LearningNavigator} />
+      <Stack.Screen name="SensoryTab" component={SensoryNavigator} />
 
       {/* 3. Communication Routes */}
       <Stack.Screen name="AAC" component={AACScreen} />
