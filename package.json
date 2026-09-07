@@ -5,6 +5,7 @@
   "scripts": {
     "backend": "cd backend && python run.py",
     "frontend": "cd frontend && npx expo start",
+    "webapp": "cd webapp && npm run dev",
     "start": "start.bat"
   }
 }

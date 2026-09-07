@@ -61,3 +61,26 @@ def sync_database_schema(target_engine=None):
                         sql = f"ALTER TABLE {table_name} ADD COLUMN {col.name} {col_type}{default_clause}"
                         conn.execute(text(sql))
 
+
+# MongoDB Lifecycle helpers
+from app.infrastructure.mongodb.client import mongo_manager
+
+def connect_mongodb():
+    mongo_manager.connect()
+
+def close_mongodb():
+    mongo_manager.close()
+
+async def check_mongo_health() -> bool:
+    try:
+        if mongo_manager.client:
+            await mongo_manager.client.admin.command('ping')
+            return True
+        elif mongo_manager.sync_client:
+            mongo_manager.sync_client.admin.command('ping')
+            return True
+        return False
+    except Exception:
+        return False
+
+

@@ -238,3 +238,101 @@ def check_separation_distance(
         create_event=True,
     )
     return result
+
+# ============================================================================
+# Live GPS Telemetry API (Public & Real-Time Sync for Web / Mobile)
+# ============================================================================
+DEFAULT_GPS_STATE = {
+    "child_id": "child-aarav-01",
+    "child_name": "Aarav Sharma",
+    "latitude": 28.61392,
+    "longitude": 77.20904,
+    "altitude": 216.4,
+    "speed": 1.2,
+    "heading": 34,
+    "accuracy": 3.2,
+    "heart_rate": 78,
+    "battery": 92,
+    "signal_rssi": -58,
+    "is_safe": True,
+    "status_mode": "SAFE",
+    "active_zone": "Greenwood School",
+    "zone_type": "SCHOOL",
+    "separation_distance": 4.2,
+    "threshold_distance": 15.0,
+    "satellite_count": 12,
+    "map_x": 545,
+    "map_y": 335,
+    "last_updated": datetime.now(timezone.utc).isoformat(),
+    "history": [
+        {"lat": 28.61350, "lng": 77.20840, "map_x": 510, "map_y": 360, "time": "3 mins ago"},
+        {"lat": 28.61372, "lng": 77.20875, "map_x": 530, "map_y": 348, "time": "2 mins ago"},
+        {"lat": 28.61392, "lng": 77.20904, "map_x": 545, "map_y": 335, "time": "Just now"}
+    ]
+}
+
+_live_gps_state = dict(DEFAULT_GPS_STATE)
+_live_gps_state["history"] = list(DEFAULT_GPS_STATE["history"])
+
+@router.get("/gps/live")
+def get_live_gps_telemetry(
+    child_id: Optional[str] = "child-aarav-01",
+    db: Session = Depends(get_db)
+):
+    """
+    Live GPS Telemetry API for real-time map tracking.
+    Returns latitude, longitude, speed, battery, heart rate, and containment status.
+    """
+    _live_gps_state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    return _live_gps_state
+
+@router.post("/gps/update")
+def update_gps_telemetry(
+    data: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Update live GPS coordinates or toggle breach state from frontend or device.
+    """
+    for key, value in data.items():
+        _live_gps_state[key] = value
+
+    # Automatically derive is_safe and status_mode if separation_distance or threshold provided
+    sep = float(_live_gps_state.get("separation_distance", 4.2))
+    thresh = float(_live_gps_state.get("threshold_distance", 15.0))
+    if sep > thresh:
+        _live_gps_state["is_safe"] = False
+        _live_gps_state["status_mode"] = "BREACH"
+    else:
+        _live_gps_state["is_safe"] = True
+        _live_gps_state["status_mode"] = "SAFE"
+
+    # Append to coordinate history if new position given
+    if "latitude" in data and "longitude" in data:
+        hist_entry = {
+            "lat": round(float(data["latitude"]), 5),
+            "lng": round(float(data["longitude"]), 5),
+            "map_x": data.get("map_x", _live_gps_state.get("map_x", 545)),
+            "map_y": data.get("map_y", _live_gps_state.get("map_y", 335)),
+            "time": "Just now"
+        }
+        hist = _live_gps_state.get("history", [])
+        hist.append(hist_entry)
+        if len(hist) > 10:
+            hist = hist[-10:]
+        _live_gps_state["history"] = hist
+
+    _live_gps_state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    return {"status": "SUCCESS", "telemetry": _live_gps_state}
+
+@router.post("/gps/reset")
+def reset_gps_telemetry(db: Session = Depends(get_db)):
+    """
+    Reset telemetry back to default safe position at Greenwood School.
+    """
+    global _live_gps_state
+    _live_gps_state = dict(DEFAULT_GPS_STATE)
+    _live_gps_state["history"] = list(DEFAULT_GPS_STATE["history"])
+    _live_gps_state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    return {"status": "RESET_SUCCESS", "telemetry": _live_gps_state}
+

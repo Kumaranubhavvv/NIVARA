@@ -13,6 +13,8 @@ from app.domains.caregivers.models import Caregiver
 from app.domains.community.models import Group, GroupMember, Post, Comment, Resource, Event, SavedPost
 from app.domains.communication.models import AACCategory, AACCard, SavedPhrase, EmotionRecord, CommunicationLog
 from app.domains.learning.models import Routine, RoutineStep, Task, Reminder, LearningTopic, TutorChatSession
+from app.models import Child, Device, SafeZone, EmergencyContact, Location
+
 
 app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
 register_exception_handlers(app)
@@ -21,7 +23,14 @@ app.add_middleware(RequestContextMiddleware)
 # Enable CORS for frontend web and mobile clients
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "http://localhost:3000",
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,11 +46,15 @@ from app.api.v1.community.social_routes import router as social_router
 
 # Include master API router
 app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api/v1")
 
 # Top-level alias routers for social interactions and sounds
 app.include_router(social_router)
 app.include_router(sound_router, prefix="/api")
 app.include_router(sound_router)
+
+from app.websocket.call_socket import router as call_ws_router
+app.include_router(call_ws_router)
 
 @app.get("/")
 def root():

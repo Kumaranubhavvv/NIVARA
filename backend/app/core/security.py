@@ -52,3 +52,6 @@ def decode_token(token: str, expected_type: Optional[str] = None) -> Optional[di
     except Exception:
         return None
 
+decode_access_token = decode_token
+
+

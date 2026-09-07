@@ -7,6 +7,7 @@ import CommunityNavigator from './CommunityNavigator';
 import SafetyNavigator from './SafetyNavigator';
 import CommunicationNavigator from './CommunicationNavigator';
 import LearningNavigator from './LearningNavigator';
+import SensoryNavigator from './SensoryNavigator';
 
 // Direct Safety & GPS screens
 import LiveLocationScreen from '../screens/safety/LiveLocationScreen';
@@ -23,7 +24,7 @@ import DeviceStatusScreen from '../screens/caregiver/DeviceStatusScreen';
 import SafetyOverviewScreen from '../screens/caregiver/SafetyOverviewScreen';
 import SupportCenterScreen from '../screens/caregiver/SupportCenterScreen';
 
-a// Direct Communication screens
+// Direct Communication screens
 import AACScreen from '../screens/communication/AACScreen';
 import CommunicationScreen from '../screens/communication/CommunicationScreen';
 import EmotionScreen from '../screens/communication/EmotionScreen';
@@ -59,8 +60,6 @@ export default function MainNavigator() {
       <Stack.Screen name="LearningTab" component={LearningNavigator} />
       <Stack.Screen name="CommunityTab" component={CommunityNavigator} />
       <Stack.Screen name="SafetyTab" component={SafetyNavigator} />
-      <Stack.Screen name="CommunicationTab" component={CommunicationNavigator} />
-      <Stack.Screen name="LearningTab" component={LearningNavigator} />
       <Stack.Screen name="SensoryTab" component={SensoryNavigator} />
 
       {/* 3. Communication Routes */}
@@ -96,7 +95,6 @@ export default function MainNavigator() {
 
       {/* 6. Sensory Support Routes */}
       <Stack.Screen name="SensoryHome" component={SensoryHomeScreen} />
-      <Stack.Screen name="SensoryTab" component={SensoryHomeScreen} />
 
       {/* 7. Educational Games & Progress Routes */}
       <Stack.Screen name="GamesHome" component={GamesHomeScreen} />
