@@ -7,6 +7,7 @@ from app.core.database import Base, engine, SessionLocal, sync_database_schema
 from app.core.security import get_password_hash
 from app.core.exception_handlers import register_exception_handlers
 from app.core.middleware import RequestContextMiddleware
+from app.core.config import settings
 from app.api.router import api_router
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver
@@ -20,17 +21,22 @@ app = FastAPI(title="NIVARA Caregiver Community API", version="1.0.0")
 register_exception_handlers(app)
 app.add_middleware(RequestContextMiddleware)
 
-# Enable CORS for frontend web and mobile clients
+# Enable CORS for frontend web, Vercel deployments, and mobile clients
+configured_origins = settings.cors_origin_list if hasattr(settings, "cors_origin_list") else []
+cors_origins = list(set([
+    "http://localhost:5173",
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://localhost:3000",
+    "http://localhost:19006",
+    "http://127.0.0.1:19006",
+    *configured_origins,
+]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8081",
-        "http://127.0.0.1:8081",
-        "http://localhost:3000",
-        "http://localhost:19006",
-        "http://127.0.0.1:19006",
-    ],
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=cors_origins if "*" not in cors_origins else ["*"],
+    allow_origin_regex=r"^https?://((localhost|127\.0\.0\.1)(:\d+)?|.*\.vercel\.app)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

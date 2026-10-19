@@ -96,9 +96,15 @@ class WebRtcService {
 
   connectSignaling(roomId, isCaller) {
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}/ws/call/${roomId}`;
+      let wsUrl;
+      if (import.meta.env.VITE_WS_URL) {
+        const baseWs = import.meta.env.VITE_WS_URL.replace(/\/$/, '');
+        wsUrl = `${baseWs}/ws/call/${roomId}`;
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        wsUrl = `${protocol}//${host}/ws/call/${roomId}`;
+      }
 
       this.socket = new WebSocket(wsUrl);
 
