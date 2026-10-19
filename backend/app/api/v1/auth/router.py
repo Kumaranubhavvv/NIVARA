@@ -8,9 +8,12 @@ from app.core.dependencies import get_current_user
 from app.core.exceptions import AuthenticationError
 from app.domains.users.models import User
 from app.domains.caregivers.models import Caregiver, VerificationSubmission
-from app.domains.auth.schemas import LoginRequest
 
 router = APIRouter()
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 class TokenResponse(BaseModel):
     access_token: str
